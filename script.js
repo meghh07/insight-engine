@@ -1,3 +1,4 @@
+alert("JS LOADED");
 window.onload = () => {
   initChart();
   loadData("bitcoin");
