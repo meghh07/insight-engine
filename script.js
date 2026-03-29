@@ -1,11 +1,8 @@
-// ===== GLOBAL STATE =====
-let chart = null;
-let socket = null;
-let dataPoints = [];
-let currentCoin = "bitcoin";
+// ===== GLOBAL =====
+let chart, candleSeries, volumeSeries;
+let socket;
 let currentSymbol = "btcusdt";
 
-// ===== MAPS =====
 const coinMap = {
   bitcoin: "btcusdt",
   ethereum: "ethusdt",
@@ -24,153 +21,126 @@ const coinColors = {
   solana: "#22c55e"
 };
 
+// ===== INIT CHART =====
+function initChart() {
+  const container = document.getElementById("chart");
+
+  chart = LightweightCharts.createChart(container, {
+    width: container.clientWidth,
+    height: 400,
+    layout: {
+      background: { color: "#020617" },
+      textColor: "#94a3b8"
+    },
+    grid: {
+      vertLines: { color: "#0f172a" },
+      horzLines: { color: "#0f172a" }
+    }
+  });
+
+  candleSeries = chart.addCandlestickSeries({
+    upColor: "#22c55e",
+    downColor: "#ef4444",
+    borderVisible: false,
+    wickUpColor: "#22c55e",
+    wickDownColor: "#ef4444"
+  });
+
+  volumeSeries = chart.addHistogramSeries({
+    color: "#38bdf8",
+    priceFormat: { type: "volume" },
+    priceScaleId: ""
+  });
+
+  volumeSeries.priceScale().applyOptions({
+    scaleMargins: {
+      top: 0.8,
+      bottom: 0
+    }
+  });
+}
+
+// ===== FETCH HISTORICAL DATA =====
+async function loadCandles() {
+  let res = await fetch(
+    `https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=1m&limit=100`
+  );
+
+  let data = await res.json();
+
+  let candles = data.map(c => ({
+    time: c[0] / 1000,
+    open: parseFloat(c[1]),
+    high: parseFloat(c[2]),
+    low: parseFloat(c[3]),
+    close: parseFloat(c[4])
+  }));
+
+  let volumes = data.map(c => ({
+    time: c[0] / 1000,
+    value: parseFloat(c[5]),
+    color: c[4] > c[1] ? "#22c55e" : "#ef4444"
+  }));
+
+  candleSeries.setData(candles);
+  volumeSeries.setData(volumes);
+}
+
+// ===== LIVE STREAM =====
+function startSocket() {
+  socket = new WebSocket(
+    `wss://stream.binance.com:9443/ws/${currentSymbol}@kline_1m`
+  );
+
+  socket.onmessage = (event) => {
+    const msg = JSON.parse(event.data);
+    const k = msg.k;
+
+    const candle = {
+      time: k.t / 1000,
+      open: parseFloat(k.o),
+      high: parseFloat(k.h),
+      low: parseFloat(k.l),
+      close: parseFloat(k.c)
+    };
+
+    candleSeries.update(candle);
+
+    volumeSeries.update({
+      time: k.t / 1000,
+      value: parseFloat(k.v),
+      color: k.c > k.o ? "#22c55e" : "#ef4444"
+    });
+
+    updatePrice(k.c);
+  };
+}
+
+// ===== PRICE UPDATE =====
+function updatePrice(price) {
+  document.getElementById("btc-price").innerText =
+    "$" + parseFloat(price).toFixed(2);
+}
+
 // ===== CHANGE COIN =====
 window.changeCoin = function (coin) {
-  console.log("Switching:", coin);
-
-  currentCoin = coin;
   currentSymbol = coinMap[coin];
-  dataPoints = [];
 
-  // 🔥 Update title
+  // Update title
   const title = document.querySelector(".left-panel h2");
   title.innerText = coinNames[coin];
   title.style.color = coinColors[coin];
 
-  // 🔥 Active button highlight
-  document.querySelectorAll(".coin-buttons button").forEach(btn => {
-    btn.classList.remove("active");
-  });
-
-  event.target.classList.add("active");
-
-  // 🔥 Restart socket
   if (socket) socket.close();
 
+  loadCandles();
   startSocket();
 };
 
-// ===== START WEBSOCKET =====
-function startSocket() {
-  socket = new WebSocket(
-    `wss://stream.binance.com:9443/ws/${currentSymbol}@trade`
-  );
-
-  socket.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    const price = parseFloat(data.p);
-
-    updateChart(price);
-    updateStats(price);
-  };
-
-  socket.onerror = (err) => {
-    console.error("Socket error:", err);
-  };
-}
-
-// ===== UPDATE CHART =====
-function updateChart(price) {
-  if (dataPoints.length > 60) dataPoints.shift();
-  dataPoints.push(price);
-
-  if (!chart) {
-    renderChart();
-  } else {
-    chart.data.labels.push("");
-    chart.data.datasets[0].data.push(price);
-
-    if (chart.data.labels.length > 60) {
-      chart.data.labels.shift();
-      chart.data.datasets[0].data.shift();
-    }
-
-    chart.update("none");
-  }
-
-  generateAI();
-}
-
-// ===== RENDER CHART =====
-function renderChart() {
-  const ctx = document.getElementById("chart").getContext("2d");
-
-  chart = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: dataPoints.map(() => ""),
-      datasets: [{
-        data: dataPoints,
-        borderColor: coinColors[currentCoin],
-        borderWidth: 2,
-        pointRadius: 0,
-        tension: 0.35,
-        fill: false
-      }]
-    },
-    options: {
-      animation: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { display: false },
-        y: {
-          ticks: { color: "#94a3b8" }
-        }
-      }
-    }
-  });
-}
-
-// ===== UPDATE STATS =====
-function updateStats(price) {
-  document.getElementById("btc-price").innerText =
-    "$" + price.toLocaleString();
-
-  document.getElementById("btc").innerText =
-    price.toLocaleString();
-
-  // Simulated realistic variation
-  document.getElementById("volume").innerText =
-    (Math.random() * 10000000000).toFixed(0);
-
-  document.getElementById("tnx").innerText =
-    (Math.random() * 1000000).toFixed(0);
-}
-
-// ===== AI ENGINE =====
-function generateAI() {
-  if (dataPoints.length < 10) return;
-
-  const first = dataPoints[0];
-  const last = dataPoints[dataPoints.length - 1];
-
-  const change = ((last - first) / first) * 100;
-
-  let prediction = "HOLD 🤝";
-  if (change > 0.15) prediction = "UP 📈";
-  if (change < -0.15) prediction = "DOWN 📉";
-
-  const confidence = Math.min(Math.abs(change * 15), 95).toFixed(0);
-
-  document.getElementById("prediction").innerText = prediction;
-  document.getElementById("confidence").innerText =
-    "Confidence: " + confidence + "%";
-
-  // Dynamic sentiment bar
-  let bull = change > 0 ? 60 + Math.random() * 25 : 30;
-  let bear = 100 - bull;
-
-  document.getElementById("bull").style.width = bull + "%";
-  document.getElementById("bull").innerText = Math.round(bull) + "%";
-
-  document.getElementById("bear").style.width = bear + "%";
-  document.getElementById("bear").innerText = Math.round(bear) + "%";
-}
-
 // ===== INIT =====
 function init() {
-  console.log("🚀 PRO DASHBOARD STARTED");
-
+  initChart();
+  loadCandles();
   startSocket();
 }
 
