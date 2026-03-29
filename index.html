@@ -2,9 +2,132 @@
 <html>
 <head>
   <title>Insight Engine</title>
+
+  <style>
+    body {
+      background: #020617;
+      color: #0f172a;
+      font-family: 'Courier New', monospace;
+      margin: 0;
+      padding: 0;
+      color: #e2e8f0;
+    }
+
+    h1 {
+      color: #22c55e;
+      text-shadow: 0 0 10px #22c55e;
+    }
+
+    .header {
+      padding: 20px;
+      text-align: center;
+      border-bottom: 1px solid #0f172a;
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 40px;
+      flex-wrap: wrap;
+    }
+
+    .card {
+      background: #020617;
+      border: 1px solid #0f172a;
+      padding: 20px;
+      width: 280px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(34,197,94,0.2);
+      transition: 0.3s;
+    }
+
+    .card:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 25px rgba(34,197,94,0.5);
+    }
+
+    .title {
+      color: #38bdf8;
+      margin-bottom: 10px;
+    }
+
+    .value {
+      font-size: 20px;
+      color: #22c55e;
+    }
+
+    .terminal {
+      margin: 40px auto;
+      width: 80%;
+      background: black;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,255,0,0.2);
+    }
+
+    .log {
+      color: #22c55e;
+      font-size: 14px;
+    }
+  </style>
 </head>
+
 <body>
-  <h1>🚀 Insight Engine Dashboard</h1>
-  <p>Jenkins + GitHub Powered</p>
+
+  <div class="header">
+    <h1>⚡ INSIGHT ENGINE</h1>
+    <p>> autonomous prediction system</p>
+  </div>
+
+  <div class="container">
+
+    <div class="card">
+      <div class="title">BTC SIGNAL</div>
+      <div class="value" id="btc">Loading...</div>
+    </div>
+
+    <div class="card">
+      <div class="title">MARKET SENTIMENT</div>
+      <div class="value" id="sentiment">Analyzing...</div>
+    </div>
+
+    <div class="card">
+      <div class="title">AI CONFIDENCE</div>
+      <div class="value" id="confidence">--</div>
+    </div>
+
+  </div>
+
+  <div class="terminal">
+    <div class="log" id="log">> Initializing system...</div>
+  </div>
+
+  <script>
+    // Fake data (we'll replace later with real)
+    document.getElementById("btc").innerText = "BULLISH 📈";
+    document.getElementById("sentiment").innerText = "POSITIVE";
+    document.getElementById("confidence").innerText = "78%";
+
+    // Fake terminal logs
+    let logs = [
+      "> Fetching market data...",
+      "> Analyzing sentiment...",
+      "> Running prediction model...",
+      "> Output: BULLISH"
+    ];
+
+    let i = 0;
+    function runLogs() {
+      if (i < logs.length) {
+        document.getElementById("log").innerHTML += "<br>" + logs[i];
+        i++;
+        setTimeout(runLogs, 1000);
+      }
+    }
+
+    setTimeout(runLogs, 1000);
+  </script>
+
 </body>
 </html>
