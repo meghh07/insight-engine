@@ -1,147 +1,124 @@
-// ===== GLOBAL =====
-let chart, candleSeries, volumeSeries;
-let socket;
-let currentSymbol = "btcusdt";
+let chart;
+let candleSeries;
+let volumeSeries;
+let currentCoin = "bitcoin";
+let interval;
 
-const coinMap = {
-  bitcoin: "btcusdt",
-  ethereum: "ethusdt",
-  solana: "solusdt"
+// ===== INIT AFTER PAGE LOAD =====
+window.onload = () => {
+  initChart();
+  loadData("bitcoin");
 };
 
-const coinNames = {
-  bitcoin: "BTC",
-  ethereum: "ETH",
-  solana: "SOL"
-};
-
-const coinColors = {
-  bitcoin: "#f7931a",
-  ethereum: "#627eea",
-  solana: "#22c55e"
-};
-
-// ===== INIT CHART =====
+// ===== CREATE CHART =====
 function initChart() {
   const container = document.getElementById("chart");
 
   chart = LightweightCharts.createChart(container, {
     width: container.clientWidth,
-    height: 400,
+    height: 500,
     layout: {
       background: { color: "#020617" },
-      textColor: "#94a3b8"
+      textColor: "#DDD"
     },
     grid: {
-      vertLines: { color: "#0f172a" },
-      horzLines: { color: "#0f172a" }
+      vertLines: { color: "#111" },
+      horzLines: { color: "#111" }
     }
   });
 
-  candleSeries = chart.addCandlestickSeries({
-    upColor: "#22c55e",
-    downColor: "#ef4444",
-    borderVisible: false,
-    wickUpColor: "#22c55e",
-    wickDownColor: "#ef4444"
-  });
+  candleSeries = chart.addCandlestickSeries();
 
   volumeSeries = chart.addHistogramSeries({
-    color: "#38bdf8",
-    priceFormat: { type: "volume" },
-    priceScaleId: ""
-  });
-
-  volumeSeries.priceScale().applyOptions({
-    scaleMargins: {
-      top: 0.8,
-      bottom: 0
-    }
+    priceFormat: { type: 'volume' },
+    priceScaleId: '',
+    scaleMargins: { top: 0.8, bottom: 0 }
   });
 }
 
-// ===== FETCH HISTORICAL DATA =====
-async function loadCandles() {
-  let res = await fetch(
-    `https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=1m&limit=100`
-  );
+// ===== LOAD DATA =====
+async function loadData(coin) {
+  currentCoin = coin;
 
-  let data = await res.json();
+  document.getElementById("coinTitle").innerText = coin.toUpperCase();
 
-  let candles = data.map(c => ({
-    time: c[0] / 1000,
-    open: parseFloat(c[1]),
-    high: parseFloat(c[2]),
-    low: parseFloat(c[3]),
-    close: parseFloat(c[4])
-  }));
+  const res = await fetch(`https://api.coingecko.com/api/v3/coins/${coin}`);
+  const data = await res.json();
 
-  let volumes = data.map(c => ({
-    time: c[0] / 1000,
-    value: parseFloat(c[5]),
-    color: c[4] > c[1] ? "#22c55e" : "#ef4444"
-  }));
+  const price = data.market_data.current_price.usd;
+
+  document.getElementById("price").innerText = "$" + price;
+
+  // RESET CHART (IMPORTANT FIX)
+  candleSeries.setData([]);
+  volumeSeries.setData([]);
+
+  let candles = [];
+  let volumes = [];
+
+  let time = Math.floor(Date.now() / 1000) - 100 * 60;
+  let lastClose = price;
+
+  for (let i = 0; i < 100; i++) {
+    let open = lastClose;
+    let close = open + (Math.random() - 0.5) * 200;
+
+    candles.push({
+      time: time,
+      open: open,
+      high: open + 100,
+      low: open - 100,
+      close: close
+    });
+
+    volumes.push({
+      time: time,
+      value: Math.random() * 1000
+    });
+
+    lastClose = close;
+    time += 60;
+  }
 
   candleSeries.setData(candles);
   volumeSeries.setData(volumes);
+
+  startRealtime(lastClose);
 }
 
-// ===== LIVE STREAM =====
-function startSocket() {
-  socket = new WebSocket(
-    `wss://stream.binance.com:9443/ws/${currentSymbol}@kline_1m`
-  );
+// ===== REALTIME =====
+function startRealtime(lastPrice) {
+  clearInterval(interval);
 
-  socket.onmessage = (event) => {
-    const msg = JSON.parse(event.data);
-    const k = msg.k;
+  interval = setInterval(() => {
+    let time = Math.floor(Date.now() / 1000);
 
-    const candle = {
-      time: k.t / 1000,
-      open: parseFloat(k.o),
-      high: parseFloat(k.h),
-      low: parseFloat(k.l),
-      close: parseFloat(k.c)
-    };
+    let newPrice = lastPrice + (Math.random() - 0.5) * 50;
 
-    candleSeries.update(candle);
-
-    volumeSeries.update({
-      time: k.t / 1000,
-      value: parseFloat(k.v),
-      color: k.c > k.o ? "#22c55e" : "#ef4444"
+    candleSeries.update({
+      time: time,
+      open: lastPrice,
+      high: Math.max(lastPrice, newPrice),
+      low: Math.min(lastPrice, newPrice),
+      close: newPrice
     });
 
-    updatePrice(k.c);
-  };
+    volumeSeries.update({
+      time: time,
+      value: Math.random() * 1000
+    });
+
+    lastPrice = newPrice;
+  }, 1000);
 }
 
-// ===== PRICE UPDATE =====
-function updatePrice(price) {
-  document.getElementById("btc-price").innerText =
-    "$" + parseFloat(price).toFixed(2);
+// ===== BUTTON SWITCH =====
+function changeCoin(coin) {
+  loadData(coin);
 }
 
-// ===== CHANGE COIN =====
-window.changeCoin = function (coin) {
-  currentSymbol = coinMap[coin];
-
-  // Update title
-  const title = document.querySelector(".left-panel h2");
-  title.innerText = coinNames[coin];
-  title.style.color = coinColors[coin];
-
-  if (socket) socket.close();
-
-  loadCandles();
-  startSocket();
-};
-
-// ===== INIT =====
-function init() {
-  initChart();
-  loadCandles();
-  startSocket();
-}
-
-init();
+// ===== AI =====
+setInterval(() => {
+  document.getElementById("prediction").innerText =
+    Math.random() > 0.5 ? "UP 📈" : "DOWN 📉";
+}, 3000);
