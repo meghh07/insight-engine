@@ -3,14 +3,14 @@
 <head>
   <title>Insight Engine</title>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
     body {
       background: #020617;
-      color: #0f172a;
-      font-family: 'Courier New', monospace;
-      margin: 0;
-      padding: 0;
       color: #e2e8f0;
+      font-family: monospace;
+      text-align: center;
     }
 
     h1 {
@@ -18,115 +18,111 @@
       text-shadow: 0 0 10px #22c55e;
     }
 
-    .header {
-      padding: 20px;
-      text-align: center;
-      border-bottom: 1px solid #0f172a;
-    }
-
     .container {
       display: flex;
+      flex-wrap: wrap;
       justify-content: center;
       gap: 20px;
-      margin-top: 40px;
-      flex-wrap: wrap;
     }
 
     .card {
       background: #020617;
       border: 1px solid #0f172a;
       padding: 20px;
-      width: 280px;
+      width: 300px;
       border-radius: 10px;
       box-shadow: 0 0 15px rgba(34,197,94,0.2);
-      transition: 0.3s;
     }
 
-    .card:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 25px rgba(34,197,94,0.5);
+    canvas {
+      margin-top: 30px;
     }
 
-    .title {
-      color: #38bdf8;
-      margin-bottom: 10px;
-    }
-
-    .value {
-      font-size: 20px;
-      color: #22c55e;
-    }
-
-    .terminal {
-      margin: 40px auto;
-      width: 80%;
-      background: black;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 20px rgba(0,255,0,0.2);
-    }
-
-    .log {
-      color: #22c55e;
-      font-size: 14px;
-    }
+    .buy { color: #22c55e; }
+    .sell { color: #ef4444; }
   </style>
 </head>
 
 <body>
 
-  <div class="header">
-    <h1>⚡ INSIGHT ENGINE</h1>
-    <p>> autonomous prediction system</p>
-  </div>
+  <h1>⚡ INSIGHT ENGINE</h1>
+  <p>> live crypto prediction dashboard</p>
 
   <div class="container">
 
     <div class="card">
-      <div class="title">BTC SIGNAL</div>
-      <div class="value" id="btc">Loading...</div>
+      <h3>BTC PRICE</h3>
+      <p id="price">Loading...</p>
     </div>
 
     <div class="card">
-      <div class="title">MARKET SENTIMENT</div>
-      <div class="value" id="sentiment">Analyzing...</div>
+      <h3>24H CHANGE</h3>
+      <p id="change">--</p>
     </div>
 
     <div class="card">
-      <div class="title">AI CONFIDENCE</div>
-      <div class="value" id="confidence">--</div>
+      <h3>SIGNAL</h3>
+      <p id="signal">Analyzing...</p>
     </div>
 
   </div>
 
-  <div class="terminal">
-    <div class="log" id="log">> Initializing system...</div>
-  </div>
+  <canvas id="chart" width="600" height="300"></canvas>
 
   <script>
-    // Fake data (we'll replace later with real)
-    document.getElementById("btc").innerText = "BULLISH 📈";
-    document.getElementById("sentiment").innerText = "POSITIVE";
-    document.getElementById("confidence").innerText = "78%";
+    async function loadData() {
 
-    // Fake terminal logs
-    let logs = [
-      "> Fetching market data...",
-      "> Analyzing sentiment...",
-      "> Running prediction model...",
-      "> Output: BULLISH"
-    ];
+      let res = await fetch("https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=1");
+      let data = await res.json();
 
-    let i = 0;
-    function runLogs() {
-      if (i < logs.length) {
-        document.getElementById("log").innerHTML += "<br>" + logs[i];
-        i++;
-        setTimeout(runLogs, 1000);
+      let prices = data.prices.map(p => p[1]);
+      let labels = data.prices.map(p => new Date(p[0]).toLocaleTimeString());
+
+      let current = prices[prices.length - 1];
+      let first = prices[0];
+      let change = ((current - first) / first * 100).toFixed(2);
+
+      document.getElementById("price").innerText = "$" + current.toFixed(2);
+      document.getElementById("change").innerText = change + "%";
+
+      // Simple AI logic
+      let signal = "";
+      if (change > 1) {
+        signal = "BUY 📈";
+        document.getElementById("signal").className = "buy";
+      } else if (change < -1) {
+        signal = "SELL 📉";
+        document.getElementById("signal").className = "sell";
+      } else {
+        signal = "HOLD 🤝";
       }
+
+      document.getElementById("signal").innerText = signal;
+
+      // Chart
+      new Chart(document.getElementById("chart"), {
+        type: "line",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: "BTC Price",
+            data: prices,
+            borderColor: "#22c55e",
+            tension: 0.2
+          }]
+        }
+      });
     }
 
-    setTimeout(runLogs, 1000);
+    loadData();
+
+    // Auto refresh every 30 sec
+    setInterval(loadData, 30000);
+
+  </script>
+
+</body>
+</html>
   </script>
 
 </body>
