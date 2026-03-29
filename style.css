@@ -117,3 +117,8 @@ canvas {
   font-size: 28px;
   text-shadow: 0 0 10px currentColor;
 }
+
+#chart {
+  width: 100%;
+  height: 400px;
+}
