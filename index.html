@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Insight Engine</title>
+<title>Insight Engine Pro</title>
 
-<script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+<script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
 
 <style>
 body {
@@ -19,25 +19,31 @@ body {
   height: 100vh;
 }
 
-.left { width: 20%; padding: 20px; }
-.center { width: 60%; }
-.right { width: 20%; padding: 20px; }
+.left, .right {
+  width: 20%;
+  padding: 20px;
+}
+
+.center {
+  width: 60%;
+}
 
 #chart {
-  width: 100%;
-  height: 500px; /* IMPORTANT */
+  height: 500px;
 }
 
 button {
-  margin: 5px;
-  padding: 8px 12px;
   border: 1px solid #00f5a0;
   background: transparent;
   color: #00f5a0;
+  padding: 8px 12px;
+  margin: 5px;
   cursor: pointer;
 }
 
-h1 { color: #00f5a0; }
+h1 {
+  color: #00f5a0;
+}
 </style>
 </head>
 
@@ -46,7 +52,7 @@ h1 { color: #00f5a0; }
 <div class="container">
 
 <div class="left">
-  <h1 id="coinTitle">BTC</h1>
+  <h1 id="coin">BTC</h1>
   <h2 id="price">$--</h2>
 </div>
 
@@ -62,11 +68,11 @@ h1 { color: #00f5a0; }
 
 <div class="right">
   <h2>AI Prediction</h2>
-  <div id="prediction">Loading...</div>
+  <div id="prediction">--</div>
 </div>
 
 </div>
 
-<script src="./script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
