@@ -2,128 +2,45 @@
 <html>
 <head>
   <title>Insight Engine</title>
-
+  <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <style>
-    body {
-      background: #020617;
-      color: #e2e8f0;
-      font-family: monospace;
-      text-align: center;
-    }
-
-    h1 {
-      color: #22c55e;
-      text-shadow: 0 0 10px #22c55e;
-    }
-
-    .container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 20px;
-    }
-
-    .card {
-      background: #020617;
-      border: 1px solid #0f172a;
-      padding: 20px;
-      width: 300px;
-      border-radius: 10px;
-      box-shadow: 0 0 15px rgba(34,197,94,0.2);
-    }
-
-    canvas {
-      margin-top: 30px;
-    }
-
-    .buy { color: #22c55e; }
-    .sell { color: #ef4444; }
-  </style>
 </head>
 
 <body>
 
   <h1>⚡ INSIGHT ENGINE</h1>
-  <p>> live crypto prediction dashboard</p>
 
-  <div class="container">
-
-    <div class="card">
-      <h3>BTC PRICE</h3>
-      <p id="price">Loading...</p>
-    </div>
-
-    <div class="card">
-      <h3>24H CHANGE</h3>
-      <p id="change">--</p>
-    </div>
-
-    <div class="card">
-      <h3>SIGNAL</h3>
-      <p id="signal">Analyzing...</p>
-    </div>
-
+  <!-- COIN CARDS -->
+  <div class="coins">
+    <div class="card"><h3>BTC</h3><p id="btc"></p></div>
+    <div class="card"><h3>ETH</h3><p id="eth"></p></div>
+    <div class="card"><h3>SOL</h3><p id="sol"></p></div>
   </div>
 
-  <canvas id="chart" width="600" height="300"></canvas>
+  <!-- TIMEFRAME -->
+  <div class="buttons">
+    <button onclick="loadChart('1')">1m</button>
+    <button onclick="loadChart('5')">5m</button>
+    <button onclick="loadChart('15')">15m</button>
+  </div>
 
-  <script>
-    async function loadData() {
+  <!-- CHART -->
+  <canvas id="chart"></canvas>
 
-      let res = await fetch("https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=1");
-      let data = await res.json();
+  <!-- METRICS -->
+  <div class="metrics">
+    <div class="card">Volume: <span id="volume"></span></div>
+    <div class="card">TNX: <span id="tnx"></span></div>
+  </div>
 
-      let prices = data.prices.map(p => p[1]);
-      let labels = data.prices.map(p => new Date(p[0]).toLocaleTimeString());
+  <!-- AI -->
+  <div class="card">
+    <h3>AI Prediction (10 min)</h3>
+    <p id="prediction"></p>
+    <p id="confidence"></p>
+  </div>
 
-      let current = prices[prices.length - 1];
-      let first = prices[0];
-      let change = ((current - first) / first * 100).toFixed(2);
-
-      document.getElementById("price").innerText = "$" + current.toFixed(2);
-      document.getElementById("change").innerText = change + "%";
-
-      // Simple AI logic
-      let signal = "";
-      if (change > 1) {
-        signal = "BUY 📈";
-        document.getElementById("signal").className = "buy";
-      } else if (change < -1) {
-        signal = "SELL 📉";
-        document.getElementById("signal").className = "sell";
-      } else {
-        signal = "HOLD 🤝";
-      }
-
-      document.getElementById("signal").innerText = signal;
-
-      // Chart
-      new Chart(document.getElementById("chart"), {
-        type: "line",
-        data: {
-          labels: labels,
-          datasets: [{
-            label: "BTC Price",
-            data: prices,
-            borderColor: "#22c55e",
-            tension: 0.2
-          }]
-        }
-      });
-    }
-
-    loadData();
-
-    // Auto refresh every 30 sec
-    setInterval(loadData, 30000);
-
-  </script>
-
-</body>
-</html>
-  </script>
+  <script src="script.js"></script>
 
 </body>
 </html>
