@@ -10,34 +10,55 @@
 
   <h1>⚡ INSIGHT ENGINE</h1>
 
-  <!-- COIN CARDS -->
-  <div class="coins">
-    <div class="card"><h3>BTC</h3><p id="btc"></p></div>
-    <div class="card"><h3>ETH</h3><p id="eth"></p></div>
-    <div class="card"><h3>SOL</h3><p id="sol"></p></div>
-  </div>
+  <div class="main">
 
-  <!-- TIMEFRAME -->
-  <div class="buttons">
-    <button onclick="loadChart('1')">1m</button>
-    <button onclick="loadChart('5')">5m</button>
-    <button onclick="loadChart('15')">15m</button>
-  </div>
+    <!-- LEFT: CHART -->
+    <div class="left">
+      <canvas id="chart"></canvas>
 
-  <!-- CHART -->
-  <canvas id="chart"></canvas>
+      <div class="buttons">
+        <button onclick="loadChart(1)">1m</button>
+        <button onclick="loadChart(5)">5m</button>
+        <button onclick="loadChart(15)">15m</button>
+      </div>
+    </div>
 
-  <!-- METRICS -->
-  <div class="metrics">
-    <div class="card">Volume: <span id="volume"></span></div>
-    <div class="card">TNX: <span id="tnx"></span></div>
-  </div>
+    <!-- RIGHT: DATA -->
+    <div class="right">
 
-  <!-- AI -->
-  <div class="card">
-    <h3>AI Prediction (10 min)</h3>
-    <p id="prediction"></p>
-    <p id="confidence"></p>
+      <div class="card">
+        <h2>BTC</h2>
+        <p id="btc"></p>
+      </div>
+
+      <div class="card">
+        <h2>ETH</h2>
+        <p id="eth"></p>
+      </div>
+
+      <div class="card">
+        <h2>SOL</h2>
+        <p id="sol"></p>
+      </div>
+
+      <div class="card">
+        <h2>Volume</h2>
+        <p id="volume"></p>
+      </div>
+
+      <div class="card">
+        <h2>Transactions (TNX)</h2>
+        <p id="tnx"></p>
+      </div>
+
+      <div class="card">
+        <h2>AI Prediction (10 min)</h2>
+        <p id="prediction"></p>
+        <p id="confidence"></p>
+      </div>
+
+    </div>
+
   </div>
 
   <script src="script.js"></script>
