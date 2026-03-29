@@ -1,17 +1,18 @@
-alert("JS LOADED");
+let chart, candleSeries, interval;
+
+// ===== INIT =====
 window.onload = () => {
-  initChart();
-  loadData("bitcoin");
+  createChart();
+  loadCoin("bitcoin");
 };
 
-let chart, candleSeries;
+// ===== CREATE CHART =====
+function createChart() {
+  const el = document.getElementById("chart");
 
-function initChart() {
-  const container = document.getElementById("chart");
-
-  chart = LightweightCharts.createChart(container, {
-    width: container.clientWidth,
-    height: 400,
+  chart = LightweightCharts.createChart(el, {
+    width: el.clientWidth,
+    height: 500,
     layout: {
       background: { color: "#020617" },
       textColor: "#fff"
@@ -21,43 +22,36 @@ function initChart() {
   candleSeries = chart.addCandlestickSeries();
 }
 
-// ===== SAFE FETCH (WITH ERROR HANDLING) =====
-async function loadData(coin) {
+// ===== LOAD COIN =====
+async function loadCoin(coin) {
+  document.getElementById("coin").innerText = coin.toUpperCase();
+
   try {
-    document.getElementById("coinTitle").innerText = coin.toUpperCase();
-
     const res = await fetch(`https://api.coingecko.com/api/v3/coins/${coin}`);
-
-    if (!res.ok) throw new Error("API blocked");
-
     const data = await res.json();
 
     const price = data.market_data.current_price.usd;
     document.getElementById("price").innerText = "$" + price;
 
-    generateFakeChart(price);
+    generateChart(price);
 
-  } catch (err) {
-    console.log("⚠️ API failed → using fallback");
-
-    document.getElementById("price").innerText = "$" + (Math.random()*50000).toFixed(2);
-
-    generateFakeChart(50000);
+  } catch {
+    console.log("API failed → fallback");
+    generateChart(50000);
   }
 }
 
-// ===== ALWAYS SHOW CHART =====
-function generateFakeChart(base) {
-  let candles = [];
+// ===== GENERATE DATA =====
+function generateChart(base) {
+  let data = [];
   let time = Math.floor(Date.now() / 1000) - 100 * 60;
-
   let last = base;
 
   for (let i = 0; i < 100; i++) {
     let open = last;
-    let close = open + (Math.random() - 0.5) * 200;
+    let close = open + (Math.random() - 0.5) * 100;
 
-    candles.push({
+    data.push({
       time,
       open,
       high: open + 50,
@@ -69,10 +63,37 @@ function generateFakeChart(base) {
     time += 60;
   }
 
-  candleSeries.setData(candles);
+  candleSeries.setData(data);
+  startRealtime(last);
 }
 
-// ===== BUTTON FIX =====
-function changeCoin(coin) {
-  loadData(coin);
+// ===== REALTIME =====
+function startRealtime(last) {
+  clearInterval(interval);
+
+  interval = setInterval(() => {
+    let time = Math.floor(Date.now() / 1000);
+    let newPrice = last + (Math.random() - 0.5) * 50;
+
+    candleSeries.update({
+      time,
+      open: last,
+      high: Math.max(last, newPrice),
+      low: Math.min(last, newPrice),
+      close: newPrice
+    });
+
+    last = newPrice;
+  }, 1000);
 }
+
+// ===== SWITCH =====
+function changeCoin(c) {
+  loadCoin(c);
+}
+
+// ===== AI =====
+setInterval(() => {
+  document.getElementById("prediction").innerText =
+    Math.random() > 0.5 ? "UP 📈" : "DOWN 📉";
+}, 3000);
