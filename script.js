@@ -1,37 +1,63 @@
 let chart;
 
 async function loadCoins() {
-  let res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd");
-  let data = await res.json();
+  try {
+    let res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd");
+    let data = await res.json();
 
-  document.getElementById("btc").innerText = "$" + data.bitcoin.usd;
-  document.getElementById("eth").innerText = "$" + data.ethereum.usd;
-  document.getElementById("sol").innerText = "$" + data.solana.usd;
+    document.getElementById("btc").innerText = "$" + data.bitcoin.usd;
+    document.getElementById("eth").innerText = "$" + data.ethereum.usd;
+    document.getElementById("sol").innerText = "$" + data.solana.usd;
+
+  } catch (e) {
+    console.log("Coin fetch error", e);
+  }
 }
 
 async function loadChart(minutes = 1) {
-  let res = await fetch(`https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=1`);
-  let data = await res.json();
+  try {
+    let res = await fetch("https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=1");
+    let data = await res.json();
 
-  let prices = data.prices.map(p => p[1]).slice(-minutes * 10);
+    let prices = data.prices.map(p => p[1]);
 
-  let labels = prices.map((_, i) => i);
+    // simulate timeframe
+    let sliceSize = Math.floor(prices.length / (1440 / minutes));
+    prices = prices.slice(-sliceSize);
 
-  if (chart) chart.destroy();
+    let labels = prices.map((_, i) => i);
 
-  chart = new Chart(document.getElementById("chart"), {
-    type: "line",
-    data: {
-      labels: labels,
-      datasets: [{
-        data: prices,
-        borderColor: "#22c55e",
-        tension: 0.3
-      }]
-    }
-  });
+    let ctx = document.getElementById("chart").getContext("2d");
 
-  generateAI(prices);
+    if (chart) chart.destroy();
+
+    chart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: "BTC",
+          data: prices,
+          borderColor: "#22c55e",
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: { display: false },
+          y: { display: true }
+        }
+      }
+    });
+
+    generateAI(prices);
+
+  } catch (e) {
+    console.log("Chart error", e);
+  }
 }
 
 function generateAI(prices) {
@@ -41,11 +67,11 @@ function generateAI(prices) {
   let change = ((last - first) / first) * 100;
 
   let prediction = "";
-  let confidence = Math.abs(change * 10).toFixed(0);
+  let confidence = Math.min(Math.abs(change * 10), 95).toFixed(0);
 
-  if (change > 0.5) {
+  if (change > 0.3) {
     prediction = "UP 📈";
-  } else if (change < -0.5) {
+  } else if (change < -0.3) {
     prediction = "DOWN 📉";
   } else {
     prediction = "HOLD 🤝";
@@ -54,14 +80,21 @@ function generateAI(prices) {
   document.getElementById("prediction").innerText = prediction;
   document.getElementById("confidence").innerText = "Confidence: " + confidence + "%";
 
-  document.getElementById("volume").innerText = Math.floor(Math.random() * 10000);
-  document.getElementById("tnx").innerText = Math.floor(Math.random() * 500);
+  // temp fake metrics
+  document.getElementById("volume").innerText = Math.floor(Math.random() * 100000);
+  document.getElementById("tnx").innerText = Math.floor(Math.random() * 1000);
 }
 
-loadCoins();
-loadChart();
+function init() {
+  console.log("Starting dashboard...");
 
-setInterval(() => {
   loadCoins();
   loadChart();
-}, 30000);
+
+  setInterval(() => {
+    loadCoins();
+    loadChart();
+  }, 15000); // refresh every 15 sec
+}
+
+init();
