@@ -1,77 +1,99 @@
-<script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Insight Engine</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8">
+<title>Insight Engine</title>
+
+<!-- Chart Library -->
+<script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+
+<style>
+body {
+  margin: 0;
+  background: #020617;
+  color: white;
+  font-family: Arial;
+}
+
+.container {
+  display: flex;
+  height: 100vh;
+}
+
+.left {
+  width: 20%;
+  padding: 20px;
+}
+
+.center {
+  width: 60%;
+}
+
+.right {
+  width: 20%;
+  padding: 20px;
+}
+
+#chart {
+  height: 60vh;
+}
+
+button {
+  background: transparent;
+  border: 1px solid #00f5a0;
+  color: #00f5a0;
+  padding: 8px 12px;
+  margin: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #00f5a0;
+  color: black;
+}
+
+h1 {
+  color: #00f5a0;
+}
+
+.box {
+  margin-bottom: 20px;
+}
+</style>
 </head>
 
 <body>
 
 <div class="container">
 
-  <!-- LEFT PANEL -->
-  <div class="left-panel">
-    <h2>BTC</h2>
-    <p id="btc-price">--</p>
+<!-- LEFT -->
+<div class="left">
+  <h1 id="coinTitle">BTC</h1>
+  <h2 id="price">$--</h2>
 
-    <div class="stat">
-      <span>Market Cap</span>
-      <span>$1.2T</span>
-    </div>
+  <div class="box">Market Cap: <span id="marketCap">--</span></div>
+  <div class="box">Volume: <span id="volume">--</span></div>
+</div>
 
-    <div class="stat">
-      <span>Volume</span>
-      <span id="volume">--</span>
-    </div>
+<!-- CENTER -->
+<div class="center">
+  <div id="chart"></div>
 
-    <div class="stat">
-      <span>Transactions</span>
-      <span id="tnx">--</span>
-    </div>
-  </div>
-
-  <!-- MAIN CHART -->
-  <div class="main-panel">
-    <div class="chart-header">
-      <button onclick="changeInterval(1)">1m</button>
-      <button onclick="changeInterval(5)">5m</button>
-      <button onclick="changeInterval(15)">15m</button>
-    </div>
-
-    <div id="chart"></div>
-  </div>
-
-  <!-- RIGHT PANEL -->
-  <div class="right-panel">
-
-    <div class="card">
-      <h3>AI Prediction (10 min)</h3>
-      <p id="prediction">--</p>
-      <p id="confidence"></p>
-    </div>
-
-    <div class="card">
-      <h3>Sentiment</h3>
-      <div class="sentiment">
-        <div class="bull" id="bull">70%</div>
-        <div class="bear" id="bear">30%</div>
-      </div>
-    </div>
-
-    <div class="card">
-  <h3>Coins</h3>
-  <div class="coin-buttons">
+  <div style="text-align:center">
     <button onclick="changeCoin('bitcoin')">BTC</button>
     <button onclick="changeCoin('ethereum')">ETH</button>
     <button onclick="changeCoin('solana')">SOL</button>
   </div>
 </div>
 
+<!-- RIGHT -->
+<div class="right">
+  <h2>AI Prediction</h2>
+  <div id="prediction">Loading...</div>
+</div>
+
 </div>
 
 <script src="script.js"></script>
-
 </body>
 </html>
