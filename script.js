@@ -1,55 +1,91 @@
-let chart;
+// ===== GLOBAL STATE =====
+let chart = null;
 let currentCoin = "bitcoin";
+let currentInterval = 1;
 
-// 🔁 COIN SWITCH
-function changeCoin(coin) {
+// ===== COIN SWITCH (GLOBAL) =====
+window.changeCoin = function (coin) {
+  console.log("Switch coin:", coin);
   currentCoin = coin;
   loadAll();
-}
+};
 
-// 🔥 LOAD EVERYTHING TOGETHER
+// ===== INTERVAL SWITCH =====
+window.changeInterval = function (mins) {
+  console.log("Switch interval:", mins);
+  currentInterval = mins;
+  loadChart();
+};
+
+// ===== LOAD EVERYTHING =====
 async function loadAll() {
-  await loadStats();
-  await loadChart();
+  await Promise.all([
+    loadStats(),
+    loadChart()
+  ]);
 }
 
-// 📊 REAL DATA (NO FAKE)
+// ===== LOAD STATS (REAL DATA) =====
 async function loadStats() {
-  let res = await fetch(`https://api.coingecko.com/api/v3/coins/${currentCoin}`);
-  let data = await res.json();
+  try {
+    let res = await fetch(
+      `https://api.coingecko.com/api/v3/coins/${currentCoin}`
+    );
+    let data = await res.json();
 
-  // Price
-  document.getElementById("btc-price").innerText =
-    "$" + data.market_data.current_price.usd;
+    // Price
+    document.getElementById("btc-price").innerText =
+      "$" + data.market_data.current_price.usd.toLocaleString();
 
-  // Market cap
-  document.getElementById("volume").innerText =
-    data.market_data.total_volume.usd.toLocaleString();
+    // Market Cap
+    document.getElementById("tnx").innerText =
+      data.market_data.market_cap.usd.toLocaleString();
 
-  document.getElementById("tnx").innerText =
-    data.market_data.market_cap.usd.toLocaleString();
+    // Volume
+    document.getElementById("volume").innerText =
+      data.market_data.total_volume.usd.toLocaleString();
 
-  // Coins panel
-  document.getElementById("btc").innerText =
-    data.market_data.current_price.usd;
+    // Top coin display
+    document.getElementById("btc").innerText =
+      data.market_data.current_price.usd.toLocaleString();
 
-  document.getElementById("eth").innerText = "...";
-  document.getElementById("sol").innerText = "...";
+  } catch (err) {
+    console.error("Stats error:", err);
+  }
 }
 
-// 📈 CHART FIXED
+// ===== LOAD CHART =====
 async function loadChart() {
-  let res = await fetch(
-    `https://api.coingecko.com/api/v3/coins/${currentCoin}/market_chart?vs_currency=usd&days=1`
-  );
+  try {
+    let res = await fetch(
+      `https://api.coingecko.com/api/v3/coins/${currentCoin}/market_chart?vs_currency=usd&days=1`
+    );
+    let data = await res.json();
 
-  let data = await res.json();
+    let prices = data.prices.map(p => p[1]);
+    let timestamps = data.prices.map(p =>
+      new Date(p[0]).toLocaleTimeString()
+    );
 
-  let prices = data.prices.map(p => p[1]);
-  let labels = data.prices.map(p =>
-    new Date(p[0]).toLocaleTimeString()
-  );
+    // Slice data based on interval (smooth zoom effect)
+    let sliceSize;
+    if (currentInterval === 1) sliceSize = 60;
+    else if (currentInterval === 5) sliceSize = 300;
+    else sliceSize = 900;
 
+    prices = prices.slice(-sliceSize);
+    timestamps = timestamps.slice(-sliceSize);
+
+    renderChart(timestamps, prices);
+    generateAI(prices);
+
+  } catch (err) {
+    console.error("Chart error:", err);
+  }
+}
+
+// ===== RENDER CHART =====
+function renderChart(labels, dataPoints) {
   let ctx = document.getElementById("chart").getContext("2d");
 
   if (chart) chart.destroy();
@@ -60,15 +96,18 @@ async function loadChart() {
       labels: labels,
       datasets: [{
         label: currentCoin.toUpperCase(),
-        data: prices,
+        data: dataPoints,
         borderColor: "#22c55e",
         borderWidth: 2,
         pointRadius: 0,
-        tension: 0.25
+        tension: 0.35
       }]
     },
     options: {
       responsive: true,
+      animation: {
+        duration: 400
+      },
       plugins: {
         legend: { display: false }
       },
@@ -84,37 +123,53 @@ async function loadChart() {
       }
     }
   });
-
-  generateAI(prices);
 }
 
-// 🤖 AI (still basic but correct)
+// ===== AI LOGIC =====
 function generateAI(prices) {
   let first = prices[0];
   let last = prices[prices.length - 1];
 
   let change = ((last - first) / first) * 100;
 
-  let prediction = change > 0 ? "UP 📈" : "DOWN 📉";
-  let confidence = Math.min(Math.abs(change * 10), 95).toFixed(0);
+  let prediction = "HOLD 🤝";
+  if (change > 0.2) prediction = "UP 📈";
+  if (change < -0.2) prediction = "DOWN 📉";
+
+  let confidence = Math.min(Math.abs(change * 12), 95).toFixed(0);
 
   document.getElementById("prediction").innerText = prediction;
   document.getElementById("confidence").innerText =
     "Confidence: " + confidence + "%";
 
-  // sentiment based on trend
-  let bull = change > 0 ? 70 : 30;
+  // Dynamic sentiment
+  let bull = change > 0 ? 65 + Math.random() * 20 : 30;
   let bear = 100 - bull;
 
   document.getElementById("bull").style.width = bull + "%";
+  document.getElementById("bull").innerText = Math.round(bull) + "%";
+
   document.getElementById("bear").style.width = bear + "%";
+  document.getElementById("bear").innerText = Math.round(bear) + "%";
 }
 
-// 🚀 INIT
-function init() {
-  loadAll();
+// ===== AUTO REFRESH (SMOOTH) =====
+function startAutoUpdate() {
+  setInterval(() => {
+    loadStats();   // faster updates
+  }, 8000);
 
-  setInterval(loadAll, 15000);
+  setInterval(() => {
+    loadChart();   // slower redraw (better performance)
+  }, 15000);
+}
+
+// ===== INIT =====
+function init() {
+  console.log("🚀 Insight Engine Started");
+
+  loadAll();
+  startAutoUpdate();
 }
 
 init();
