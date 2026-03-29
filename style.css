@@ -94,3 +94,26 @@ canvas {
   background: #ef4444;
   text-align: center;
 }
+
+/* ACTIVE BUTTON */
+.coin-buttons button.active {
+  background: #22c55e;
+  color: black;
+  box-shadow: 0 0 10px #22c55e;
+}
+
+/* SMOOTH UI */
+.card {
+  transition: 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 0 15px rgba(34,197,94,0.4);
+}
+
+/* TITLE GLOW */
+.left-panel h2 {
+  font-weight: bold;
+  font-size: 28px;
+  text-shadow: 0 0 10px currentColor;
+}
