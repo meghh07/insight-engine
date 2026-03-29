@@ -1,48 +1,72 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Chart Test</title>
+<meta charset="UTF-8">
+<title>Insight Engine</title>
 
-  <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+<script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
 
-  <style>
-    body { background: #020617; margin: 0; }
-    #chart { width: 100%; height: 400px; }
-  </style>
+<style>
+body {
+  margin: 0;
+  background: #020617;
+  color: white;
+  font-family: Arial;
+}
+
+.container {
+  display: flex;
+  height: 100vh;
+}
+
+.left { width: 20%; padding: 20px; }
+.center { width: 60%; }
+.right { width: 20%; padding: 20px; }
+
+#chart {
+  width: 100%;
+  height: 500px; /* IMPORTANT */
+}
+
+button {
+  margin: 5px;
+  padding: 8px 12px;
+  border: 1px solid #00f5a0;
+  background: transparent;
+  color: #00f5a0;
+  cursor: pointer;
+}
+
+h1 { color: #00f5a0; }
+</style>
 </head>
 
 <body>
 
-<div id="chart"></div>
+<div class="container">
 
-<script>
-window.onload = function () {
+<div class="left">
+  <h1 id="coinTitle">BTC</h1>
+  <h2 id="price">$--</h2>
+</div>
 
-  console.log("Starting chart...");
+<div class="center">
+  <div id="chart"></div>
 
-  const container = document.getElementById("chart");
+  <div style="text-align:center">
+    <button onclick="changeCoin('bitcoin')">BTC</button>
+    <button onclick="changeCoin('ethereum')">ETH</button>
+    <button onclick="changeCoin('solana')">SOL</button>
+  </div>
+</div>
 
-  const chart = LightweightCharts.createChart(container, {
-    width: window.innerWidth,
-    height: 400,
-    layout: {
-      background: { color: "#020617" },
-      textColor: "#fff"
-    }
-  });
+<div class="right">
+  <h2>AI Prediction</h2>
+  <div id="prediction">Loading...</div>
+</div>
 
-  const candleSeries = chart.addCandlestickSeries();
+</div>
 
-  candleSeries.setData([
-    { time: '2024-01-01', open: 100, high: 110, low: 90, close: 105 },
-    { time: '2024-01-02', open: 105, high: 115, low: 95, close: 100 },
-    { time: '2024-01-03', open: 100, high: 120, low: 98, close: 115 }
-  ]);
-
-  console.log("✅ Chart rendered");
-
-};
-</script>
-
+<script src="script.js"></script>
 </body>
 </html>
