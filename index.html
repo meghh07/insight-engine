@@ -8,60 +8,69 @@
 
 <body>
 
-  <h1>⚡ INSIGHT ENGINE</h1>
+<div class="container">
 
-  <div class="main">
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <h2>BTC</h2>
+    <p id="btc-price">--</p>
 
-    <!-- LEFT: CHART -->
-    <div class="left">
-      <canvas id="chart"></canvas>
+    <div class="stat">
+      <span>Market Cap</span>
+      <span>$1.2T</span>
+    </div>
 
-      <div class="buttons">
-        <button onclick="loadChart(1)">1m</button>
-        <button onclick="loadChart(5)">5m</button>
-        <button onclick="loadChart(15)">15m</button>
+    <div class="stat">
+      <span>Volume</span>
+      <span id="volume">--</span>
+    </div>
+
+    <div class="stat">
+      <span>Transactions</span>
+      <span id="tnx">--</span>
+    </div>
+  </div>
+
+  <!-- MAIN CHART -->
+  <div class="main-panel">
+    <div class="chart-header">
+      <button onclick="loadChart(1)">1m</button>
+      <button onclick="loadChart(5)">5m</button>
+      <button onclick="loadChart(15)">15m</button>
+    </div>
+
+    <canvas id="chart"></canvas>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+
+    <div class="card">
+      <h3>AI Prediction (10 min)</h3>
+      <p id="prediction">--</p>
+      <p id="confidence"></p>
+    </div>
+
+    <div class="card">
+      <h3>Sentiment</h3>
+      <div class="sentiment">
+        <div class="bull" id="bull">70%</div>
+        <div class="bear" id="bear">30%</div>
       </div>
     </div>
 
-    <!-- RIGHT: DATA -->
-    <div class="right">
-
-      <div class="card">
-        <h2>BTC</h2>
-        <p id="btc"></p>
-      </div>
-
-      <div class="card">
-        <h2>ETH</h2>
-        <p id="eth"></p>
-      </div>
-
-      <div class="card">
-        <h2>SOL</h2>
-        <p id="sol"></p>
-      </div>
-
-      <div class="card">
-        <h2>Volume</h2>
-        <p id="volume"></p>
-      </div>
-
-      <div class="card">
-        <h2>Transactions (TNX)</h2>
-        <p id="tnx"></p>
-      </div>
-
-      <div class="card">
-        <h2>AI Prediction (10 min)</h2>
-        <p id="prediction"></p>
-        <p id="confidence"></p>
-      </div>
-
+    <div class="card">
+      <h3>Coins</h3>
+      <p>BTC: <span id="btc"></span></p>
+      <p>ETH: <span id="eth"></span></p>
+      <p>SOL: <span id="sol"></span></p>
     </div>
 
   </div>
 
-  <script src="script.js"></script>
+</div>
+
+<script src="script.js"></script>
 
 </body>
 </html>
