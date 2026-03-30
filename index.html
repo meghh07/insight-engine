@@ -3,106 +3,261 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>CryptoTrace — AI Prediction Dashboard</title>
+  <title>Insight Engine — AI Crypto Intelligence</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body class="theme-up">
 
-  <div class="scanlines"></div>
+  <!-- Noise texture overlay -->
+  <div class="noise"></div>
 
   <div class="app">
 
-    <!-- HEADER -->
+    <!-- ═══ HEADER ═══ -->
     <header class="header">
       <div class="logo">
-        <span class="logo-icon">◈</span>
-        <span class="logo-text">CryptoTrace</span>
+        <div class="logo-emblem">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <polygon points="14,2 26,8 26,20 14,26 2,20 2,8" stroke="var(--accent)" stroke-width="1.5" fill="none"/>
+            <polygon points="14,7 21,11 21,17 14,21 7,17 7,11" stroke="var(--accent)" stroke-width="1" fill="var(--accent)" fill-opacity="0.1"/>
+            <circle cx="14" cy="14" r="2.5" fill="var(--accent)"/>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <span class="logo-title">Insight Engine</span>
+          <span class="logo-sub">AI CRYPTO INTELLIGENCE</span>
+        </div>
       </div>
+
+      <div class="header-center">
+        <div class="market-pill" id="marketStatus">
+          <span class="market-dot"></span>
+          <span>MARKETS OPEN</span>
+        </div>
+      </div>
+
       <div class="header-right">
-        <span class="live-badge"><span class="pulse-dot"></span>LIVE</span>
-        <span class="clock" id="clock">--:--:--</span>
+        <div class="header-stat">
+          <span class="hs-label">BTC DOM</span>
+          <span class="hs-value" id="btcDom">54.2%</span>
+        </div>
+        <div class="header-stat">
+          <span class="hs-label">FEAR & GREED</span>
+          <span class="hs-value fg-value" id="fgIndex">72 · Greed</span>
+        </div>
+        <div class="live-badge">
+          <span class="pulse-dot"></span>LIVE
+        </div>
+        <div class="clock" id="clock">--:--:--</div>
       </div>
     </header>
 
-    <!-- MAIN -->
+    <!-- ═══ MAIN ═══ -->
     <main class="main">
 
+      <!-- ── LEFT PANEL ── -->
       <aside class="left-panel">
 
-        <!-- Coin Info -->
-        <div class="card coin-info">
-          <h1 class="coin-name" id="coinName">BITCOIN</h1>
-          <div class="coin-price" id="coinPrice">$67,719</div>
-          <div class="coin-meta">
-            <span class="change" id="coinChange">+2.41%</span>
-            <span class="meta-label">24h</span>
+        <!-- Coin Selector -->
+        <div class="coin-tabs">
+          <button class="coin-tab active" data-coin="BTC">
+            <span class="ct-icon">₿</span>
+            <span class="ct-name">BTC</span>
+            <span class="ct-change" id="tab-change-BTC">+2.41%</span>
+          </button>
+          <button class="coin-tab" data-coin="ETH">
+            <span class="ct-icon">Ξ</span>
+            <span class="ct-name">ETH</span>
+            <span class="ct-change" id="tab-change-ETH">+1.78%</span>
+          </button>
+          <button class="coin-tab" data-coin="SOL">
+            <span class="ct-icon">◎</span>
+            <span class="ct-name">SOL</span>
+            <span class="ct-change down" id="tab-change-SOL">-0.94%</span>
+          </button>
+        </div>
+
+        <!-- Price Card -->
+        <div class="card price-card">
+          <div class="pc-top">
+            <div class="pc-name-row">
+              <span class="pc-symbol" id="coinSymbol">BTC</span>
+              <span class="pc-fullname" id="coinName">Bitcoin</span>
+            </div>
+            <div class="pc-price" id="coinPrice">$67,719.00</div>
+            <div class="pc-meta">
+              <span class="pc-change" id="coinChange">▲ +2.41%</span>
+              <span class="pc-period">24h</span>
+            </div>
           </div>
-          <div class="coin-stats">
-            <div class="stat">
-              <span class="stat-label">24H HIGH</span>
-              <span class="stat-value" id="stat24hHigh">—</span>
+          <div class="pc-stats">
+            <div class="pcs-item">
+              <span class="pcs-label">24H HIGH</span>
+              <span class="pcs-val accent" id="statHigh">—</span>
             </div>
-            <div class="stat">
-              <span class="stat-label">24H LOW</span>
-              <span class="stat-value" id="stat24hLow">—</span>
+            <div class="pcs-item">
+              <span class="pcs-label">24H LOW</span>
+              <span class="pcs-val danger" id="statLow">—</span>
             </div>
-            <div class="stat">
-              <span class="stat-label">VOLUME</span>
-              <span class="stat-value" id="statVol">—</span>
+            <div class="pcs-item">
+              <span class="pcs-label">VOLUME</span>
+              <span class="pcs-val" id="statVol">—</span>
+            </div>
+            <div class="pcs-item">
+              <span class="pcs-label">MKT CAP</span>
+              <span class="pcs-val" id="statMcap">—</span>
+            </div>
+            <div class="pcs-item">
+              <span class="pcs-label">CIRC SUPPLY</span>
+              <span class="pcs-val" id="statSupply">—</span>
+            </div>
+            <div class="pcs-item">
+              <span class="pcs-label">ALL-TIME HIGH</span>
+              <span class="pcs-val" id="statAth">—</span>
             </div>
           </div>
         </div>
 
-        <!-- AI Panel -->
-        <div class="card ai-panel">
-          <div class="ai-header">
-            <span class="ai-icon">⬡</span>
-            <span>AI Prediction</span>
-          </div>
-          <div class="ai-verdict">
-            <span class="verdict-arrow up" id="verdictArrow">▲</span>
-            <span class="verdict-label up" id="verdictLabel">UP</span>
-          </div>
-          <div class="ai-confidence">
-            <span class="conf-label">Confidence</span>
-            <div class="conf-bar-wrap">
-              <div class="conf-bar" id="confBar" style="width:72%"></div>
+        <!-- AI Signal Card -->
+        <div class="card ai-card">
+          <div class="ai-card-header">
+            <div class="ai-label">
+              <span class="ai-hex">⬡</span>
+              <span>AI SIGNAL</span>
             </div>
-            <span class="conf-pct" id="confPct">72%</span>
+            <div class="ai-badge" id="aiBadge">ANALYZING</div>
           </div>
+
+          <div class="ai-verdict-row">
+            <div class="ai-direction" id="aiDirection">
+              <span class="ai-arrow" id="aiArrow">▲</span>
+              <span class="ai-word" id="aiWord">BULLISH</span>
+            </div>
+            <div class="ai-score-ring">
+              <svg viewBox="0 0 60 60" class="ring-svg">
+                <circle cx="30" cy="30" r="24" stroke="#0e2030" stroke-width="5" fill="none"/>
+                <circle cx="30" cy="30" r="24" stroke="var(--accent)" stroke-width="5" fill="none"
+                  stroke-dasharray="150.8" stroke-dashoffset="40"
+                  stroke-linecap="round" id="ringCircle"
+                  transform="rotate(-90 30 30)"/>
+              </svg>
+              <span class="ring-pct" id="ringPct">74%</span>
+            </div>
+          </div>
+
+          <div class="ai-indicators">
+            <div class="ai-ind">
+              <span class="ind-label">RSI</span>
+              <div class="ind-bar-wrap"><div class="ind-bar" id="indRsi" style="width:65%"></div></div>
+              <span class="ind-val" id="indRsiVal">65.4</span>
+            </div>
+            <div class="ai-ind">
+              <span class="ind-label">MACD</span>
+              <div class="ind-bar-wrap"><div class="ind-bar" id="indMacd" style="width:70%"></div></div>
+              <span class="ind-val accent" id="indMacdVal">+0.32</span>
+            </div>
+            <div class="ai-ind">
+              <span class="ind-label">VOL</span>
+              <div class="ind-bar-wrap"><div class="ind-bar" id="indVol" style="width:80%"></div></div>
+              <span class="ind-val" id="indVolVal">HIGH</span>
+            </div>
+          </div>
+
           <p class="ai-reason" id="aiReason">
             Strong bullish momentum. RSI above 60, MACD bullish crossover observed.
           </p>
-          <button class="refresh-btn" id="refreshBtn">
-            <span class="btn-icon" id="btnIcon">↻</span> Refresh Prediction
-          </button>
+
+          <div class="ai-actions">
+            <button class="btn-primary" id="refreshBtn">
+              <span class="r-icon" id="rIcon">↻</span> Refresh Signal
+            </button>
+            <button class="btn-secondary" id="alertBtn">
+              <span>🔔</span> Set Alert
+            </button>
+          </div>
         </div>
 
       </aside>
 
-      <!-- Chart Section -->
-      <section class="chart-section card">
-        <div class="chart-topbar">
-          <div class="timeframes">
-            <button class="tf-btn active" data-tf="1H">1H</button>
-            <button class="tf-btn" data-tf="4H">4H</button>
-            <button class="tf-btn" data-tf="1D">1D</button>
-            <button class="tf-btn" data-tf="1W">1W</button>
+      <!-- ── CHART AREA ── -->
+      <section class="chart-area">
+
+        <!-- Chart topbar -->
+        <div class="chart-header card">
+          <div class="ch-left">
+            <div class="ch-price-block">
+              <span class="ch-price" id="chartPrice">$67,719.00</span>
+              <span class="ch-change" id="chartChange">▲ +2.41%</span>
+            </div>
           </div>
-          <div class="current-price-tag" id="chartPriceTag">$67,722.17</div>
+          <div class="ch-center">
+            <div class="tf-group">
+              <button class="tf-btn active" data-tf="1M">1M</button>
+              <button class="tf-btn" data-tf="5M">5M</button>
+              <button class="tf-btn" data-tf="15M">15M</button>
+              <button class="tf-btn" data-tf="1H">1H</button>
+              <button class="tf-btn" data-tf="4H">4H</button>
+              <button class="tf-btn" data-tf="1D">1D</button>
+              <button class="tf-btn" data-tf="1W">1W</button>
+            </div>
+          </div>
+          <div class="ch-right">
+            <div class="chart-type-group">
+              <button class="ct-btn active" data-type="line" title="Line">〜</button>
+              <button class="ct-btn" data-type="bar" title="Bar">▮▮</button>
+            </div>
+          </div>
         </div>
 
-        <div class="chart-wrap">
-          <canvas id="priceChart"></canvas>
+        <!-- Chart canvas -->
+        <div class="card chart-card">
+          <div class="chart-wrap">
+            <canvas id="priceChart"></canvas>
+          </div>
+          <!-- Crosshair price label -->
+          <div class="crosshair-label" id="crosshairLabel" style="display:none"></div>
         </div>
 
-        <div class="coin-selector">
-          <button class="coin-btn active" data-coin="BTC">BTC</button>
-          <button class="coin-btn" data-coin="ETH">ETH</button>
-          <button class="coin-btn" data-coin="SOL">SOL</button>
+        <!-- Bottom stats bar -->
+        <div class="stats-bar card">
+          <div class="sb-item">
+            <span class="sb-label">OPEN</span>
+            <span class="sb-val" id="sbOpen">—</span>
+          </div>
+          <div class="sb-sep"></div>
+          <div class="sb-item">
+            <span class="sb-label">HIGH</span>
+            <span class="sb-val accent" id="sbHigh">—</span>
+          </div>
+          <div class="sb-sep"></div>
+          <div class="sb-item">
+            <span class="sb-label">LOW</span>
+            <span class="sb-val danger" id="sbLow">—</span>
+          </div>
+          <div class="sb-sep"></div>
+          <div class="sb-item">
+            <span class="sb-label">CLOSE</span>
+            <span class="sb-val" id="sbClose">—</span>
+          </div>
+          <div class="sb-sep"></div>
+          <div class="sb-item">
+            <span class="sb-label">CHANGE</span>
+            <span class="sb-val" id="sbChange">—</span>
+          </div>
+          <div class="sb-sep"></div>
+          <div class="sb-item">
+            <span class="sb-label">AMPLITUDE</span>
+            <span class="sb-val" id="sbAmplitude">—</span>
+          </div>
+          <div class="sb-sep"></div>
+          <div class="sb-item">
+            <span class="sb-label">UPDATES</span>
+            <span class="sb-val accent" id="sbTicks">0</span>
+          </div>
         </div>
+
       </section>
 
     </main>
@@ -112,6 +267,3 @@
   <script src="app.js"></script>
 </body>
 </html>
-
-
-
