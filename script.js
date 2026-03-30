@@ -1,348 +1,291 @@
-/* ===========================================
-   CryptoTrace — app.js
-   Live price simulation + AI prediction
-=========================================== */
+/* ============================================
+   Insight Engine — app.js
+============================================ */
 
-// ─── COIN CONFIGS ─────────────────────────────
-const COINS = {
-  BTC: {
-    name:    'BITCOIN',
-    symbol:  'BTC',
-    base:    67700,
-    spread:  3000,
-    change:  '+2.41%',
-    vol:     '$38.2B',
-  },
-  ETH: {
-    name:    'ETHEREUM',
-    symbol:  'ETH',
-    base:    3520,
-    spread:  200,
-    change:  '+1.78%',
-    vol:     '$18.6B',
-  },
-  SOL: {
-    name:    'SOLANA',
-    symbol:  'SOL',
-    base:    148,
-    spread:  20,
-    change:  '-0.94%',
-    vol:     '$4.1B',
-  },
-};
+document.addEventListener('DOMContentLoaded', function () {
 
-// ─── STATE ────────────────────────────────────
-let activeCoin    = 'BTC';
-let activeTimeframe = '1H';
-let priceChart    = null;
-let chartInterval = null;
-let clockInterval = null;
+  // ── COIN CONFIGS ──────────────────────────
+  const COINS = {
+    BTC: { name: 'BITCOIN',  base: 67700, spread: 2800, change: '+2.41%', vol: '$38.2B' },
+    ETH: { name: 'ETHEREUM', base: 3520,  spread: 180,  change: '+1.78%', vol: '$18.6B' },
+    SOL: { name: 'SOLANA',   base: 148,   spread: 18,   change: '-0.94%', vol: '$4.1B'  },
+  };
 
-// ─── DOM REFS ─────────────────────────────────
-const coinNameEl    = document.getElementById('coinName');
-const coinPriceEl   = document.getElementById('coinPrice');
-const coinChangeEl  = document.getElementById('coinChange');
-const stat24hHigh   = document.getElementById('stat24hHigh');
-const stat24hLow    = document.getElementById('stat24hLow');
-const statVol       = document.getElementById('statVol');
-const chartPriceTag = document.getElementById('chartPriceTag');
-const verdictArrow  = document.getElementById('verdictArrow');
-const verdictLabel  = document.getElementById('verdictLabel');
-const confBar       = document.getElementById('confBar');
-const confPct       = document.getElementById('confPct');
-const aiReason      = document.getElementById('aiReason');
-const refreshBtn    = document.getElementById('refreshBtn');
-const clockEl       = document.getElementById('clock');
-const canvas        = document.getElementById('priceChart');
+  // ── STATE ─────────────────────────────────
+  let activeCoin      = 'BTC';
+  let activeTimeframe = '1H';
+  let priceChart      = null;
+  let liveInterval    = null;
 
-// ─── UTILS ────────────────────────────────────
-function rand(min, max) {
-  return Math.random() * (max - min) + min;
-}
+  // ── DOM ───────────────────────────────────
+  const coinNameEl    = document.getElementById('coinName');
+  const coinPriceEl   = document.getElementById('coinPrice');
+  const coinChangeEl  = document.getElementById('coinChange');
+  const stat24hHigh   = document.getElementById('stat24hHigh');
+  const stat24hLow    = document.getElementById('stat24hLow');
+  const statVol       = document.getElementById('statVol');
+  const chartPriceTag = document.getElementById('chartPriceTag');
+  const verdictArrow  = document.getElementById('verdictArrow');
+  const verdictLabel  = document.getElementById('verdictLabel');
+  const confBar       = document.getElementById('confBar');
+  const confPct       = document.getElementById('confPct');
+  const aiReason      = document.getElementById('aiReason');
+  const refreshBtn    = document.getElementById('refreshBtn');
+  const btnIcon       = document.getElementById('btnIcon');
+  const clockEl       = document.getElementById('clock');
+  const canvas        = document.getElementById('priceChart');
 
-function fmt(num, decimals = 2) {
-  return num.toLocaleString('en-US', {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  });
-}
+  // ── UTILS ─────────────────────────────────
+  function rand(min, max) { return Math.random() * (max - min) + min; }
 
-function fmtPrice(num) {
-  return '$' + fmt(num, num < 100 ? 2 : 2);
-}
-
-// ─── GENERATE PRICE DATA ──────────────────────
-function generatePrices(coin, points = 80) {
-  const cfg  = COINS[coin];
-  const data = [];
-  let price  = cfg.base + rand(-cfg.spread * 0.5, cfg.spread * 0.5);
-
-  for (let i = 0; i < points; i++) {
-    const drift = rand(-cfg.spread * 0.015, cfg.spread * 0.018);
-    price = Math.max(cfg.base - cfg.spread, price + drift);
-    data.push(parseFloat(price.toFixed(2)));
-  }
-  return data;
-}
-
-function generateLabels(points = 80, tf = '1H') {
-  const labels = [];
-  const now    = new Date();
-  const intervals = { '1H': 1, '4H': 4, '1D': 15, '1W': 60 }; // minutes per step
-  const step   = (intervals[tf] || 1) * 60 * 1000;
-
-  for (let i = points - 1; i >= 0; i--) {
-    const t = new Date(now - i * step);
-    labels.push(t.getDate().toString().padStart(2, '0'));
-  }
-  return labels;
-}
-
-// ─── AI PREDICTION LOGIC ──────────────────────
-const AI_REASONS_UP = [
-  'Strong bullish momentum detected. RSI above 60, MACD bullish crossover observed.',
-  'Price consolidating above key support. Volume surge indicates accumulation phase.',
-  'Fibonacci retracement held at 0.618 level. Breakout pattern forming on 4H chart.',
-  'On-chain data shows whale accumulation. Exchange outflows at 3-month high.',
-  'Golden cross confirmed on daily chart. Institutional buy signals detected.',
-];
-
-const AI_REASONS_DOWN = [
-  'Bearish divergence on RSI. Distribution pattern visible on the hourly timeframe.',
-  'Resistance level rejected multiple times. Sell pressure increasing from shorts.',
-  'Volume declining on recent pumps. Classic bull trap pattern identified.',
-  'On-chain funding rates elevated. Over-leveraged long positions at risk.',
-  'Death cross forming on 4H. Macro uncertainty adding downward pressure.',
-];
-
-function runAIPrediction() {
-  const prices  = priceChart?.data?.datasets?.[0]?.data ?? [];
-  if (!prices.length) return;
-
-  const last  = prices[prices.length - 1];
-  const prev  = prices[prices.length - 10] ?? prices[0];
-  const trend = last > prev;
-
-  const confidence = Math.floor(rand(58, 91));
-  const reasons    = trend ? AI_REASONS_UP : AI_REASONS_DOWN;
-  const reason     = reasons[Math.floor(Math.random() * reasons.length)];
-
-  // Update UI
-  verdictArrow.className = 'verdict-arrow ' + (trend ? 'up' : 'down');
-  verdictArrow.textContent = trend ? '▲' : '▼';
-  verdictLabel.textContent  = trend ? 'UP' : 'DOWN';
-  verdictLabel.className    = 'verdict-label ' + (trend ? '' : 'down');
-
-  confBar.style.width = confidence + '%';
-  confPct.textContent = confidence + '%';
-  aiReason.textContent = reason;
-
-  // Flash effect
-  verdictLabel.style.opacity = '0.2';
-  setTimeout(() => (verdictLabel.style.transition = 'opacity 0.5s'), 10);
-  setTimeout(() => (verdictLabel.style.opacity   = '1'), 50);
-}
-
-// ─── CHART SETUP ──────────────────────────────
-function buildChart(prices, labels) {
-  const ctx = canvas.getContext('2d');
-
-  const grad = ctx.createLinearGradient(0, 0, 0, canvas.offsetHeight || 360);
-  grad.addColorStop(0,   'rgba(0,255,204,0.18)');
-  grad.addColorStop(0.5, 'rgba(0,255,204,0.04)');
-  grad.addColorStop(1,   'rgba(0,255,204,0)');
-
-  if (priceChart) {
-    priceChart.destroy();
-    priceChart = null;
+  function fmtPrice(n) {
+    return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
-  priceChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [{
-        data:            prices,
-        borderColor:     '#00ffcc',
-        borderWidth:     1.8,
-        pointRadius:     0,
-        pointHoverRadius: 4,
-        pointHoverBackgroundColor: '#00ffcc',
-        fill:            true,
-        backgroundColor: grad,
-        tension:         0.35,
-      }],
-    },
-    options: {
-      responsive:          true,
-      maintainAspectRatio: false,
-      animation: {
-        duration: 600,
-        easing:   'easeInOutQuart',
-      },
-      interaction: {
-        mode:      'index',
-        intersect: false,
-      },
-      plugins: {
-        legend:  { display: false },
-        tooltip: {
-          backgroundColor: 'rgba(8,15,26,0.95)',
-          borderColor:     'rgba(0,255,204,0.3)',
-          borderWidth:     1,
-          titleColor:      '#7a9ab8',
-          bodyColor:       '#00ffcc',
-          titleFont:       { family: 'Space Mono', size: 10 },
-          bodyFont:        { family: 'Space Mono', size: 13 },
-          padding:         10,
-          callbacks: {
-            label: ctx => ' $' + fmt(ctx.parsed.y, 2),
-          },
-        },
-      },
-      scales: {
-        x: {
-          grid: {
-            color: 'rgba(15,34,53,0.8)',
-            drawTicks: false,
-          },
-          ticks: {
-            color:     '#3d5a72',
-            font:      { family: 'Space Mono', size: 10 },
-            maxTicksLimit: 8,
-            maxRotation: 0,
-          },
-          border: { color: '#0f2235' },
-        },
-        y: {
-          position: 'right',
-          grid: {
-            color:     'rgba(15,34,53,0.8)',
-            drawTicks: false,
-          },
-          ticks: {
-            color:     '#3d5a72',
-            font:      { family: 'Space Mono', size: 10 },
-            callback:  v => '$' + fmt(v, 2),
-            maxTicksLimit: 8,
-          },
-          border: { color: '#0f2235' },
-        },
-      },
-    },
-  });
-}
+  // ── PRICE DATA GENERATION ─────────────────
+  function generatePrices(coin, points) {
+    points = points || 80;
+    var cfg   = COINS[coin];
+    var data  = [];
+    var price = cfg.base + rand(-cfg.spread * 0.4, cfg.spread * 0.4);
+    for (var i = 0; i < points; i++) {
+      price += rand(-cfg.spread * 0.014, cfg.spread * 0.016);
+      price  = Math.max(cfg.base - cfg.spread * 0.9, price);
+      data.push(Math.round(price * 100) / 100);
+    }
+    return data;
+  }
 
-// ─── UPDATE STATS ─────────────────────────────
-function updateStats(prices) {
-  const high = Math.max(...prices);
-  const low  = Math.min(...prices);
-  const last = prices[prices.length - 1];
+  function generateLabels(points, tf) {
+    var labels   = [];
+    var now      = Date.now();
+    var msPerStep = { '1H': 60000, '4H': 240000, '1D': 900000, '1W': 3600000 };
+    var step     = msPerStep[tf] || 60000;
+    for (var i = points - 1; i >= 0; i--) {
+      var t = new Date(now - i * step);
+      var h = t.getHours().toString().padStart(2, '0');
+      var m = t.getMinutes().toString().padStart(2, '0');
+      labels.push(h + ':' + m);
+    }
+    return labels;
+  }
 
-  coinPriceEl.textContent   = fmtPrice(last);
-  chartPriceTag.textContent = fmtPrice(last);
-  stat24hHigh.textContent   = fmtPrice(high);
-  stat24hLow.textContent    = fmtPrice(low);
-}
+  // ── AI PREDICTION ─────────────────────────
+  var REASONS_UP = [
+    'Strong bullish momentum. RSI above 60, MACD bullish crossover observed.',
+    'Price consolidating above key support. Volume surge indicates accumulation.',
+    'Fibonacci 0.618 retracement held. Breakout pattern forming on 4H chart.',
+    'On-chain data shows whale accumulation. Exchange outflows at 3-month high.',
+    'Golden cross confirmed on daily chart. Institutional buy signals detected.',
+  ];
+  var REASONS_DOWN = [
+    'Bearish divergence on RSI. Distribution pattern visible on hourly timeframe.',
+    'Resistance rejected multiple times. Sell pressure increasing from shorts.',
+    'Volume declining on recent pumps. Classic bull trap pattern identified.',
+    'Funding rates elevated. Over-leveraged long positions at risk.',
+    'Death cross forming on 4H chart. Macro uncertainty adds downward pressure.',
+  ];
 
-// ─── LOAD COIN ────────────────────────────────
-function loadCoin(coin) {
-  activeCoin = coin;
-
-  const cfg     = COINS[coin];
-  const prices  = generatePrices(coin);
-  const labels  = generateLabels(prices.length, activeTimeframe);
-
-  coinNameEl.textContent = cfg.name;
-  statVol.textContent    = cfg.vol;
-
-  const isDown = cfg.change.startsWith('-');
-  coinChangeEl.textContent = cfg.change;
-  coinChangeEl.className   = 'change' + (isDown ? ' down' : '');
-
-  updateStats(prices);
-  buildChart(prices, labels);
-  runAIPrediction();
-  startLiveTick();
-}
-
-// ─── LIVE TICK ────────────────────────────────
-function startLiveTick() {
-  if (chartInterval) clearInterval(chartInterval);
-
-  chartInterval = setInterval(() => {
+  function runAIPrediction() {
     if (!priceChart) return;
+    var prices = priceChart.data.datasets[0].data;
+    if (!prices || prices.length < 2) return;
 
-    const dataset = priceChart.data.datasets[0];
-    const labels  = priceChart.data.labels;
-    const prices  = dataset.data;
-    const cfg     = COINS[activeCoin];
+    var last  = prices[prices.length - 1];
+    var prev  = prices[Math.max(0, prices.length - 10)];
+    var up    = last >= prev;
 
-    // Append new price
-    const last  = prices[prices.length - 1];
-    const drift = rand(-cfg.spread * 0.012, cfg.spread * 0.014);
-    const next  = parseFloat((last + drift).toFixed(2));
+    var confidence = Math.floor(rand(58, 92));
+    var reasons    = up ? REASONS_UP : REASONS_DOWN;
+    var reason     = reasons[Math.floor(Math.random() * reasons.length)];
 
-    prices.push(next);
-    labels.push(new Date().getDate().toString().padStart(2, '0'));
+    verdictArrow.textContent  = up ? '▲' : '▼';
+    verdictArrow.className    = 'verdict-arrow ' + (up ? 'up' : 'down');
+    verdictLabel.textContent  = up ? 'UP' : 'DOWN';
+    verdictLabel.className    = 'verdict-label ' + (up ? 'up' : 'down');
+    confBar.style.width       = confidence + '%';
+    confPct.textContent       = confidence + '%';
+    aiReason.textContent      = reason;
 
-    // Keep buffer at ~100 points
-    if (prices.length > 100) {
-      prices.shift();
-      labels.shift();
+    // flash
+    verdictLabel.style.opacity = '0.1';
+    setTimeout(function () { verdictLabel.style.opacity = '1'; }, 120);
+  }
+
+  // ── BUILD CHART ───────────────────────────
+  function buildChart(prices, labels) {
+    // Destroy old chart properly
+    if (priceChart) {
+      priceChart.destroy();
+      priceChart = null;
     }
 
-    dataset.data = prices;
-    priceChart.update('none'); // no animation for live ticks
+    var ctx  = canvas.getContext('2d');
+    var grad = ctx.createLinearGradient(0, 0, 0, canvas.parentElement.offsetHeight || 340);
+    grad.addColorStop(0,   'rgba(0,255,204,0.20)');
+    grad.addColorStop(0.6, 'rgba(0,255,204,0.04)');
+    grad.addColorStop(1,   'rgba(0,255,204,0.00)');
+
+    priceChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          data:                     prices,
+          borderColor:              '#00ffcc',
+          borderWidth:              1.8,
+          pointRadius:              0,
+          pointHoverRadius:         4,
+          pointHoverBackgroundColor:'#00ffcc',
+          pointHoverBorderColor:    '#00ffcc',
+          fill:                     true,
+          backgroundColor:          grad,
+          tension:                  0.4,
+        }],
+      },
+      options: {
+        responsive:          true,
+        maintainAspectRatio: false,
+        animation:           { duration: 500 },
+        interaction:         { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(8,15,26,0.95)',
+            borderColor:     'rgba(0,255,204,0.3)',
+            borderWidth:     1,
+            titleColor:      '#7a9ab8',
+            bodyColor:       '#00ffcc',
+            titleFont:       { family: 'Space Mono', size: 10 },
+            bodyFont:        { family: 'Space Mono', size: 12 },
+            padding:         10,
+            callbacks: {
+              label: function (ctx) { return ' ' + fmtPrice(ctx.parsed.y); },
+            },
+          },
+        },
+        scales: {
+          x: {
+            grid:   { color: 'rgba(15,34,53,0.9)', drawTicks: false },
+            ticks:  { color: '#3d5a72', font: { family: 'Space Mono', size: 9 }, maxTicksLimit: 7, maxRotation: 0 },
+            border: { color: '#0f2235' },
+          },
+          y: {
+            position: 'right',
+            grid:   { color: 'rgba(15,34,53,0.9)', drawTicks: false },
+            ticks:  {
+              color: '#3d5a72',
+              font:  { family: 'Space Mono', size: 9 },
+              maxTicksLimit: 7,
+              callback: function (v) { return fmtPrice(v); },
+            },
+            border: { color: '#0f2235' },
+          },
+        },
+      },
+    });
+  }
+
+  // ── UPDATE STATS ──────────────────────────
+  function updateStats(prices) {
+    var high = Math.max.apply(null, prices);
+    var low  = Math.min.apply(null, prices);
+    var last = prices[prices.length - 1];
+    coinPriceEl.textContent   = fmtPrice(last);
+    chartPriceTag.textContent = fmtPrice(last);
+    stat24hHigh.textContent   = fmtPrice(high);
+    stat24hLow.textContent    = fmtPrice(low);
+  }
+
+  // ── LOAD COIN ─────────────────────────────
+  function loadCoin(coin) {
+    activeCoin = coin;
+    var cfg    = COINS[coin];
+    var prices = generatePrices(coin, 80);
+    var labels = generateLabels(80, activeTimeframe);
+
+    coinNameEl.textContent = cfg.name;
+    statVol.textContent    = cfg.vol;
+
+    var isDown = cfg.change.charAt(0) === '-';
+    coinChangeEl.textContent = cfg.change;
+    coinChangeEl.className   = 'change' + (isDown ? ' down' : '');
 
     updateStats(prices);
-  }, 1500);
-}
-
-// ─── CLOCK ────────────────────────────────────
-function startClock() {
-  function tick() {
-    const now = new Date();
-    clockEl.textContent =
-      now.toLocaleTimeString('en-US', { hour12: false });
+    buildChart(prices, labels);
+    runAIPrediction();
+    startLiveTick();
   }
-  tick();
-  clockInterval = setInterval(tick, 1000);
-}
 
-// ─── EVENT LISTENERS ──────────────────────────
+  // ── LIVE TICK ─────────────────────────────
+  function startLiveTick() {
+    if (liveInterval) {
+      clearInterval(liveInterval);
+      liveInterval = null;
+    }
+    liveInterval = setInterval(function () {
+      if (!priceChart) return;
+      var cfg     = COINS[activeCoin];
+      var dataset = priceChart.data.datasets[0];
+      var labels  = priceChart.data.labels;
 
-// Coin buttons
-document.querySelectorAll('.coin-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.coin-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    loadCoin(btn.dataset.coin);
+      // Work on copies to avoid mutation issues
+      var newData   = dataset.data.slice();
+      var newLabels = labels.slice();
+
+      var last  = newData[newData.length - 1];
+      var drift = rand(-cfg.spread * 0.011, cfg.spread * 0.013);
+      var next  = Math.round((last + drift) * 100) / 100;
+
+      newData.push(next);
+      var now = new Date();
+      newLabels.push(now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0'));
+
+      if (newData.length > 100) { newData.shift(); newLabels.shift(); }
+
+      priceChart.data.datasets[0].data = newData;
+      priceChart.data.labels           = newLabels;
+      priceChart.update('none');
+
+      updateStats(newData);
+    }, 1500);
+  }
+
+  // ── CLOCK ─────────────────────────────────
+  function updateClock() {
+    var now = new Date();
+    clockEl.textContent = now.toLocaleTimeString('en-US', { hour12: false });
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // ── COIN BUTTONS ──────────────────────────
+  document.querySelectorAll('.coin-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.coin-btn').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      loadCoin(btn.getAttribute('data-coin'));
+    });
   });
-});
 
-// Timeframe buttons
-document.querySelectorAll('.tf-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    activeTimeframe = btn.dataset.tf;
-    loadCoin(activeCoin);
+  // ── TIMEFRAME BUTTONS ─────────────────────
+  document.querySelectorAll('.tf-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.tf-btn').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      activeTimeframe = btn.getAttribute('data-tf');
+      loadCoin(activeCoin);
+    });
   });
-});
 
-// Refresh prediction
-refreshBtn.addEventListener('click', () => {
-  const icon = refreshBtn.querySelector('.btn-icon');
-  icon.style.transform    = 'rotate(360deg)';
-  icon.style.transition   = 'transform 0.5s ease';
-  setTimeout(() => {
-    icon.style.transform  = '';
-    icon.style.transition = '';
-  }, 500);
-  runAIPrediction();
-});
+  // ── REFRESH PREDICTION ────────────────────
+  refreshBtn.addEventListener('click', function () {
+    btnIcon.classList.add('spinning');
+    setTimeout(function () { btnIcon.classList.remove('spinning'); }, 500);
+    runAIPrediction();
+  });
 
-// ─── INIT ─────────────────────────────────────
-startClock();
-loadCoin('BTC');
+  // ── INIT ──────────────────────────────────
+  loadCoin('BTC');
+
+}); // end DOMContentLoaded
