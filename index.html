@@ -1,78 +1,117 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Insight Engine Pro</title>
-
-<script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
-
-<style>
-body {
-  margin: 0;
-  background: #020617;
-  color: white;
-  font-family: Arial;
-}
-
-.container {
-  display: flex;
-  height: 100vh;
-}
-
-.left, .right {
-  width: 20%;
-  padding: 20px;
-}
-
-.center {
-  width: 60%;
-}
-
-#chart {
-  height: 500px;
-}
-
-button {
-  border: 1px solid #00f5a0;
-  background: transparent;
-  color: #00f5a0;
-  padding: 8px 12px;
-  margin: 5px;
-  cursor: pointer;
-}
-
-h1 {
-  color: #00f5a0;
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CryptoTrace — AI Prediction Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-
 <body>
+  <!-- Scanline overlay -->
+  <div class="scanlines"></div>
 
-<div class="container">
+  <div class="app">
 
-<div class="left">
-  <h1 id="coin">BTC</h1>
-  <h2 id="price">$--</h2>
-</div>
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <span class="logo-icon">◈</span>
+        <span class="logo-text">CryptoTrace</span>
+      </div>
+      <div class="header-right">
+        <span class="live-badge">
+          <span class="pulse-dot"></span>
+          LIVE
+        </span>
+        <span class="clock" id="clock">--:--:--</span>
+      </div>
+    </header>
 
-<div class="center">
-  <div id="chart"></div>
+    <!-- Main layout -->
+    <main class="main">
 
-  <div style="text-align:center">
-    <button onclick="changeCoin('bitcoin')">BTC</button>
-    <button onclick="changeCoin('ethereum')">ETH</button>
-    <button onclick="changeCoin('solana')">SOL</button>
+      <!-- Left panel -->
+      <section class="left-panel">
+        <div class="coin-info">
+          <h1 class="coin-name" id="coinName">BITCOIN</h1>
+          <div class="coin-price" id="coinPrice">$67,719</div>
+          <div class="coin-meta">
+            <span class="change" id="coinChange">+2.41%</span>
+            <span class="meta-label">24h</span>
+          </div>
+          <div class="coin-stats">
+            <div class="stat">
+              <span class="stat-label">24H HIGH</span>
+              <span class="stat-value" id="stat24hHigh">—</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">24H LOW</span>
+              <span class="stat-value" id="stat24hLow">—</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">VOLUME</span>
+              <span class="stat-value" id="statVol">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Prediction Panel -->
+        <div class="ai-panel">
+          <div class="ai-header">
+            <span class="ai-icon">⬡</span>
+            <span>AI Prediction</span>
+          </div>
+          <div class="ai-verdict" id="aiVerdict">
+            <span class="verdict-arrow up" id="verdictArrow">▲</span>
+            <span class="verdict-label" id="verdictLabel">UP</span>
+          </div>
+          <div class="ai-confidence">
+            <span class="conf-label">Confidence</span>
+            <div class="conf-bar-wrap">
+              <div class="conf-bar" id="confBar" style="width: 72%"></div>
+            </div>
+            <span class="conf-pct" id="confPct">72%</span>
+          </div>
+          <p class="ai-reason" id="aiReason">
+            Strong bullish momentum detected. RSI above 60, MACD bullish crossover observed.
+          </p>
+          <button class="refresh-btn" id="refreshBtn">
+            <span class="btn-icon">↻</span> Refresh Prediction
+          </button>
+        </div>
+      </section>
+
+      <!-- Chart area -->
+      <section class="chart-section">
+        <div class="chart-topbar">
+          <div class="timeframes">
+            <button class="tf-btn active" data-tf="1H">1H</button>
+            <button class="tf-btn" data-tf="4H">4H</button>
+            <button class="tf-btn" data-tf="1D">1D</button>
+            <button class="tf-btn" data-tf="1W">1W</button>
+          </div>
+          <div class="current-price-tag" id="chartPriceTag">$67,722.17</div>
+        </div>
+
+        <div class="chart-wrap">
+          <canvas id="priceChart"></canvas>
+          <div class="chart-crosshair" id="crosshair"></div>
+        </div>
+
+        <!-- Coin selector -->
+        <div class="coin-selector">
+          <button class="coin-btn active" data-coin="BTC">BTC</button>
+          <button class="coin-btn" data-coin="ETH">ETH</button>
+          <button class="coin-btn" data-coin="SOL">SOL</button>
+        </div>
+      </section>
+
+    </main>
   </div>
-</div>
 
-<div class="right">
-  <h2>AI Prediction</h2>
-  <div id="prediction">--</div>
-</div>
-
-</div>
-
-<script src="script.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
+
