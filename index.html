@@ -4,37 +4,35 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CryptoTrace — AI Prediction Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <!-- Scanline overlay -->
+
   <div class="scanlines"></div>
 
   <div class="app">
 
-    <!-- Header -->
+    <!-- HEADER -->
     <header class="header">
       <div class="logo">
         <span class="logo-icon">◈</span>
         <span class="logo-text">CryptoTrace</span>
       </div>
       <div class="header-right">
-        <span class="live-badge">
-          <span class="pulse-dot"></span>
-          LIVE
-        </span>
+        <span class="live-badge"><span class="pulse-dot"></span>LIVE</span>
         <span class="clock" id="clock">--:--:--</span>
       </div>
     </header>
 
-    <!-- Main layout -->
+    <!-- MAIN -->
     <main class="main">
 
-      <!-- Left panel -->
-      <section class="left-panel">
-        <div class="coin-info">
+      <aside class="left-panel">
+
+        <!-- Coin Info -->
+        <div class="card coin-info">
           <h1 class="coin-name" id="coinName">BITCOIN</h1>
           <div class="coin-price" id="coinPrice">$67,719</div>
           <div class="coin-meta">
@@ -57,34 +55,35 @@
           </div>
         </div>
 
-        <!-- AI Prediction Panel -->
-        <div class="ai-panel">
+        <!-- AI Panel -->
+        <div class="card ai-panel">
           <div class="ai-header">
             <span class="ai-icon">⬡</span>
             <span>AI Prediction</span>
           </div>
-          <div class="ai-verdict" id="aiVerdict">
+          <div class="ai-verdict">
             <span class="verdict-arrow up" id="verdictArrow">▲</span>
-            <span class="verdict-label" id="verdictLabel">UP</span>
+            <span class="verdict-label up" id="verdictLabel">UP</span>
           </div>
           <div class="ai-confidence">
             <span class="conf-label">Confidence</span>
             <div class="conf-bar-wrap">
-              <div class="conf-bar" id="confBar" style="width: 72%"></div>
+              <div class="conf-bar" id="confBar" style="width:72%"></div>
             </div>
             <span class="conf-pct" id="confPct">72%</span>
           </div>
           <p class="ai-reason" id="aiReason">
-            Strong bullish momentum detected. RSI above 60, MACD bullish crossover observed.
+            Strong bullish momentum. RSI above 60, MACD bullish crossover observed.
           </p>
           <button class="refresh-btn" id="refreshBtn">
-            <span class="btn-icon">↻</span> Refresh Prediction
+            <span class="btn-icon" id="btnIcon">↻</span> Refresh Prediction
           </button>
         </div>
-      </section>
 
-      <!-- Chart area -->
-      <section class="chart-section">
+      </aside>
+
+      <!-- Chart Section -->
+      <section class="chart-section card">
         <div class="chart-topbar">
           <div class="timeframes">
             <button class="tf-btn active" data-tf="1H">1H</button>
@@ -97,10 +96,8 @@
 
         <div class="chart-wrap">
           <canvas id="priceChart"></canvas>
-          <div class="chart-crosshair" id="crosshair"></div>
         </div>
 
-        <!-- Coin selector -->
         <div class="coin-selector">
           <button class="coin-btn active" data-coin="BTC">BTC</button>
           <button class="coin-btn" data-coin="ETH">ETH</button>
@@ -111,7 +108,9 @@
     </main>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
+
 
