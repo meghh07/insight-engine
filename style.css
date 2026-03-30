@@ -1,501 +1,623 @@
-/* ===========================
-   VARIABLES & RESET
-=========================== */
-:root {
-  --bg-deep:    #050d14;
-  --bg-panel:   #080f1a;
-  --bg-card:    #0c1827;
-  --accent:     #00ffcc;
-  --accent-dim: rgba(0,255,204,0.12);
-  --accent2:    #00d4ff;
-  --danger:     #ff4d6a;
-  --danger-dim: rgba(255,77,106,0.15);
-  --text-bright:#e8f4ff;
-  --text-mid:   #7a9ab8;
-  --text-dim:   #3d5a72;
-  --border:     #0f2235;
-  --font-mono:  'Space Mono', monospace;
-  --font-ui:    'Rajdhani', sans-serif;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Insight Engine</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Rajdhani:wght@500;600;700&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0;}
+
+body{
+  background:#050d14;
+  color:#e8f4ff;
+  font-family:'Rajdhani',sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-html, body {
-  height: 100%;
-  background: var(--bg-deep);
-  color: var(--text-bright);
-  font-family: var(--font-ui);
-  overflow-x: hidden;
-}
-
-button { cursor: pointer; outline: none; }
-
-/* ===========================
-   SCANLINES
-=========================== */
-.scanlines {
-  pointer-events: none;
-  position: fixed;
-  inset: 0;
-  z-index: 999;
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0px, transparent 3px,
-    rgba(0,0,0,0.07) 3px, rgba(0,0,0,0.07) 4px
+/* scanlines overlay */
+body::after{
+  content:'';pointer-events:none;
+  position:fixed;inset:0;z-index:999;
+  background:repeating-linear-gradient(
+    to bottom,transparent 0,transparent 3px,
+    rgba(0,0,0,0.055) 3px,rgba(0,0,0,0.055) 4px
   );
 }
 
-/* ===========================
-   APP SHELL
-=========================== */
-.app {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  padding: 0 24px 24px;
-  max-width: 1440px;
-  margin: 0 auto;
+.app{
+  max-width:1440px;margin:0 auto;
+  padding:0 26px 28px;
+  display:flex;flex-direction:column;min-height:100vh;
 }
 
-/* ===========================
-   HEADER
-=========================== */
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 0 14px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 22px;
-  flex-shrink: 0;
+/* ── HEADER ─────────────────────────────── */
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:15px 0 13px;
+  border-bottom:1px solid #0e2030;
+  margin-bottom:20px;
+}
+.logo{display:flex;align-items:center;gap:11px;}
+.logo-mark{
+  width:34px;height:34px;
+  border:2px solid #00ffcc;
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 12px rgba(0,255,204,.3), inset 0 0 8px rgba(0,255,204,.08);
+  position:relative;overflow:hidden;
+}
+.logo-mark::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(0,255,204,.15),transparent);
+}
+.logo-mark-inner{
+  font-size:16px;color:#00ffcc;
+  filter:drop-shadow(0 0 6px #00ffcc);
+  animation:spin 12s linear infinite;
+  display:inline-block;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.logo-text-wrap{display:flex;flex-direction:column;line-height:1.1;}
+.logo-name{
+  font-family:'Space Mono',monospace;font-size:14px;font-weight:700;
+  color:#e8f4ff;letter-spacing:.12em;text-transform:uppercase;
+}
+.logo-sub{
+  font-family:'Space Mono',monospace;font-size:9px;
+  color:#00ffcc;letter-spacing:.22em;text-transform:uppercase;
+  opacity:.8;
 }
 
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.header-right{display:flex;align-items:center;gap:16px;}
+.live-badge{
+  display:flex;align-items:center;gap:7px;
+  font-family:'Space Mono',monospace;font-size:10px;font-weight:700;
+  color:#00ffcc;letter-spacing:.14em;
+  background:rgba(0,255,204,.08);border:1px solid rgba(0,255,204,.35);
+  padding:5px 11px;border-radius:4px;
+}
+.pulse-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:#00ffcc;box-shadow:0 0 6px #00ffcc;
+  animation:pulse 1.6s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.25;transform:scale(.55);}}
+.clock{
+  font-family:'Space Mono',monospace;font-size:12px;
+  color:#4a7a96;letter-spacing:.06em;
 }
 
-.logo-icon {
-  font-size: 20px;
-  color: var(--accent);
-  filter: drop-shadow(0 0 8px var(--accent));
-  display: inline-block;
-  animation: spin 10s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
+/* ── MAIN GRID ───────────────────────────── */
+.main{display:grid;grid-template-columns:268px 1fr;gap:18px;flex:1;}
 
-.logo-text {
-  font-family: var(--font-mono);
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--accent);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+/* ── CARD BASE ───────────────────────────── */
+.card{
+  background:#07101a;border:1px solid #0e2030;
+  border-radius:14px;position:relative;overflow:hidden;
+}
+.card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent 0%,rgba(0,255,204,.7) 50%,transparent 100%);
 }
 
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 18px;
+/* ── LEFT PANEL ──────────────────────────── */
+.left-panel{display:flex;flex-direction:column;gap:16px;}
+
+/* Coin Info card */
+.coin-info{padding:20px 18px 18px;}
+.coin-symbol-row{display:flex;align-items:center;gap:10px;margin-bottom:4px;}
+.coin-icon{
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;font-family:'Space Mono',monospace;
+  background:rgba(0,255,204,.12);border:1px solid rgba(0,255,204,.3);
+  color:#00ffcc;flex-shrink:0;
+}
+.coin-name{
+  font-family:'Space Mono',monospace;font-size:16px;font-weight:700;
+  color:#00ffcc;text-shadow:0 0 12px rgba(0,255,204,.4);letter-spacing:.07em;
+}
+.coin-price{
+  font-family:'Space Mono',monospace;
+  font-size:28px;font-weight:700;color:#e8f4ff;
+  margin-bottom:7px;letter-spacing:-.01em;
+  text-shadow:0 0 30px rgba(232,244,255,.1);
+}
+.coin-meta{display:flex;align-items:center;gap:9px;margin-bottom:16px;}
+.change{
+  font-family:'Space Mono',monospace;font-size:11px;font-weight:700;
+  color:#00ffcc;background:rgba(0,255,204,.1);
+  border:1px solid rgba(0,255,204,.3);padding:3px 8px;border-radius:4px;
+}
+.change.down{color:#ff4d6a;background:rgba(255,77,106,.1);border-color:rgba(255,77,106,.28);}
+.meta-label{font-family:'Space Mono',monospace;font-size:9px;color:#2d4d62;letter-spacing:.12em;}
+
+.coin-stats{display:flex;flex-direction:column;gap:9px;border-top:1px solid #0e2030;padding-top:13px;}
+.stat{display:flex;justify-content:space-between;align-items:center;}
+.stat-label{font-family:'Space Mono',monospace;font-size:9px;color:#2d4d62;letter-spacing:.1em;}
+.stat-value{font-family:'Space Mono',monospace;font-size:12px;color:#6a8aa6;}
+
+/* AI Panel card */
+.ai-panel{padding:18px;}
+.ai-panel::before{background:linear-gradient(90deg,transparent 0%,rgba(0,180,255,.7) 50%,transparent 100%);}
+
+.ai-header{
+  display:flex;align-items:center;gap:8px;
+  font-family:'Space Mono',monospace;font-size:10px;
+  color:#4a7a96;letter-spacing:.18em;text-transform:uppercase;
+  margin-bottom:14px;
+}
+.ai-icon{
+  font-size:15px;color:#00b4ff;
+  filter:drop-shadow(0 0 5px #00b4ff);
+  display:inline-block;animation:float 3s ease-in-out infinite;
+}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-3px);}}
+
+.ai-verdict{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.verdict-arrow{font-size:26px;line-height:1;}
+.verdict-arrow.up  {color:#00ffcc;filter:drop-shadow(0 0 10px #00ffcc);animation:bup 1.5s ease-in-out infinite;}
+.verdict-arrow.down{color:#ff4d6a;filter:drop-shadow(0 0 10px #ff4d6a);animation:bdn 1.5s ease-in-out infinite;}
+@keyframes bup{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+@keyframes bdn{0%,100%{transform:translateY(0);}50%{transform:translateY(5px);}}
+
+.verdict-label{
+  font-family:'Space Mono',monospace;font-size:30px;font-weight:700;
+  letter-spacing:.06em;transition:opacity .35s ease;
+}
+.verdict-label.up  {color:#00ffcc;text-shadow:0 0 22px rgba(0,255,204,.55);}
+.verdict-label.down{color:#ff4d6a;text-shadow:0 0 22px rgba(255,77,106,.55);}
+
+.ai-confidence{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.conf-label{font-family:'Space Mono',monospace;font-size:9px;color:#2d4d62;letter-spacing:.1em;white-space:nowrap;}
+.conf-bar-wrap{flex:1;height:4px;background:#0e2030;border-radius:2px;overflow:hidden;}
+.conf-bar{height:100%;background:linear-gradient(90deg,#00ffcc,#00b4ff);border-radius:2px;transition:width .65s ease;box-shadow:0 0 6px rgba(0,255,204,.35);}
+.conf-pct{font-family:'Space Mono',monospace;font-size:11px;color:#00ffcc;min-width:34px;text-align:right;}
+
+.ai-reason{
+  font-size:12.5px;font-weight:500;line-height:1.65;color:#5a8099;
+  border-left:2px solid rgba(0,255,204,.2);
+  padding-left:11px;margin-bottom:14px;
 }
 
-.live-badge {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--accent);
-  letter-spacing: 0.14em;
-  background: var(--accent-dim);
-  border: 1px solid rgba(0,255,204,0.4);
-  padding: 4px 10px;
-  border-radius: 4px;
+.refresh-btn{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:7px;
+  background:transparent;border:1px solid rgba(0,255,204,.4);
+  color:#00ffcc;font-family:'Space Mono',monospace;
+  font-size:10px;letter-spacing:.12em;
+  padding:8px 14px;border-radius:6px;cursor:pointer;
+  text-transform:uppercase;transition:background .2s,box-shadow .2s;
+}
+.refresh-btn:hover{background:rgba(0,255,204,.07);box-shadow:0 0 16px rgba(0,255,204,.18);}
+.refresh-btn:active{transform:scale(.98);}
+.r-icon{font-size:14px;display:inline-block;transition:transform .45s ease;}
+.refresh-btn:hover .r-icon{transform:rotate(180deg);}
+
+/* ── CHART SECTION ───────────────────────── */
+.chart-section{display:flex;flex-direction:column;padding:20px 20px 18px;}
+
+.chart-topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:14px;flex-shrink:0;
+}
+.tf-group{display:flex;gap:5px;}
+.tf-btn{
+  background:transparent;border:1px solid #0e2030;
+  color:#2d4d62;font-family:'Space Mono',monospace;
+  font-size:10px;padding:5px 11px;border-radius:4px;cursor:pointer;
+  letter-spacing:.06em;transition:all .15s;
+}
+.tf-btn:hover{border-color:rgba(0,255,204,.5);color:#00ffcc;}
+.tf-btn.active{
+  background:rgba(0,255,204,.1);
+  border-color:rgba(0,255,204,.55);
+  color:#00ffcc;
+  box-shadow:0 0 8px rgba(0,255,204,.12);
 }
 
-.pulse-dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 7px var(--accent);
-  animation: pulse 1.6s ease-in-out infinite;
-}
-@keyframes pulse {
-  0%,100% { opacity:1; transform:scale(1); }
-  50%      { opacity:0.3; transform:scale(0.6); }
+.price-tag{
+  font-family:'Space Mono',monospace;font-size:13px;font-weight:700;
+  color:#050d14;background:#00ffcc;
+  padding:5px 14px;border-radius:5px;
+  box-shadow:0 0 20px rgba(0,255,204,.4);
+  letter-spacing:.04em;white-space:nowrap;
 }
 
-.clock {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--text-mid);
-  letter-spacing: 0.06em;
+/* chart canvas area — FIXED height is critical */
+.chart-wrap{
+  width:100%;height:360px;
+  position:relative;flex-shrink:0;
+}
+.chart-wrap canvas{
+  position:absolute;top:0;left:0;
+  width:100% !important;height:100% !important;
 }
 
-/* ===========================
-   MAIN GRID
-=========================== */
-.main {
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 18px;
-  flex: 1;
-  min-height: 0;
+/* coin selector */
+.coin-selector{
+  display:flex;justify-content:center;gap:10px;
+  margin-top:16px;flex-shrink:0;
+}
+.coin-btn{
+  background:transparent;border:1px solid #0e2030;
+  color:#5a7a92;font-family:'Space Mono',monospace;
+  font-size:12px;font-weight:700;
+  padding:7px 26px;border-radius:6px;cursor:pointer;
+  letter-spacing:.1em;transition:all .18s;
+}
+.coin-btn:hover{border-color:rgba(0,255,204,.5);color:#00ffcc;}
+.coin-btn.active{
+  background:rgba(0,255,204,.1);
+  border-color:rgba(0,255,204,.55);
+  color:#00ffcc;
+  box-shadow:0 0 14px rgba(0,255,204,.14);
 }
 
-/* ===========================
-   CARD BASE
-=========================== */
-.card {
-  background: var(--bg-panel);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  position: relative;
-  overflow: hidden;
+/* ── RESPONSIVE ──────────────────────────── */
+@media(max-width:960px){
+  .main{grid-template-columns:1fr;}
+  .left-panel{flex-direction:row;flex-wrap:wrap;}
+  .coin-info,.ai-panel{flex:1 1 250px;}
+  .chart-wrap{height:280px;}
+}
+@media(max-width:560px){
+  .app{padding:0 12px 16px;}
+  .coin-price{font-size:22px;}
+  .chart-wrap{height:230px;}
+  .tf-btn{padding:4px 8px;font-size:9px;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo">
+      <div class="logo-mark"><span class="logo-mark-inner">◈</span></div>
+      <div class="logo-text-wrap">
+        <span class="logo-name">Insight Engine</span>
+        <span class="logo-sub">AI Crypto Intelligence</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <span class="live-badge"><span class="pulse-dot"></span>LIVE</span>
+      <span class="clock" id="clock">--:--:--</span>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- LEFT PANEL -->
+    <aside class="left-panel">
+
+      <!-- Coin Info -->
+      <div class="card coin-info">
+        <div class="coin-symbol-row">
+          <div class="coin-icon" id="coinIcon">₿</div>
+          <div class="coin-name" id="coinName">BITCOIN</div>
+        </div>
+        <div class="coin-price" id="coinPrice">$67,719.00</div>
+        <div class="coin-meta">
+          <span class="change" id="coinChange">+2.41%</span>
+          <span class="meta-label">24H CHANGE</span>
+        </div>
+        <div class="coin-stats">
+          <div class="stat"><span class="stat-label">24H HIGH</span><span class="stat-value" id="statHigh">—</span></div>
+          <div class="stat"><span class="stat-label">24H LOW</span> <span class="stat-value" id="statLow">—</span></div>
+          <div class="stat"><span class="stat-label">VOLUME</span>  <span class="stat-value" id="statVol">—</span></div>
+          <div class="stat"><span class="stat-label">MKT CAP</span> <span class="stat-value" id="statMcap">—</span></div>
+        </div>
+      </div>
+
+      <!-- AI Panel -->
+      <div class="card ai-panel">
+        <div class="ai-header">
+          <span class="ai-icon">⬡</span>
+          <span>AI Signal</span>
+        </div>
+        <div class="ai-verdict">
+          <span class="verdict-arrow up" id="vArrow">▲</span>
+          <span class="verdict-label up" id="vLabel">UP</span>
+        </div>
+        <div class="ai-confidence">
+          <span class="conf-label">Confidence</span>
+          <div class="conf-bar-wrap"><div class="conf-bar" id="confBar" style="width:72%"></div></div>
+          <span class="conf-pct" id="confPct">72%</span>
+        </div>
+        <p class="ai-reason" id="aiReason">
+          Strong bullish momentum. RSI above 60, MACD bullish crossover observed.
+        </p>
+        <button class="refresh-btn" id="refreshBtn">
+          <span class="r-icon">↻</span> Refresh Signal
+        </button>
+      </div>
+
+    </aside>
+
+    <!-- CHART SECTION -->
+    <section class="chart-section card">
+
+      <div class="chart-topbar">
+        <div class="tf-group">
+          <button class="tf-btn active" data-tf="1M">1M</button>
+          <button class="tf-btn" data-tf="1H">1H</button>
+          <button class="tf-btn" data-tf="4H">4H</button>
+          <button class="tf-btn" data-tf="1D">1D</button>
+          <button class="tf-btn" data-tf="1W">1W</button>
+        </div>
+        <div class="price-tag" id="priceTag">$67,719.00</div>
+      </div>
+
+      <div class="chart-wrap">
+        <canvas id="priceChart"></canvas>
+      </div>
+
+      <div class="coin-selector">
+        <button class="coin-btn active" data-coin="BTC">BTC</button>
+        <button class="coin-btn" data-coin="ETH">ETH</button>
+        <button class="coin-btn" data-coin="SOL">SOL</button>
+      </div>
+
+    </section>
+
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function(){
+
+/* ── COIN CONFIG ──────────────────────────────────────── */
+var COINS = {
+  BTC:{ name:'BITCOIN',  icon:'₿', base:67700, spread:2600, change:'+2.41%', vol:'$38.2B', mcap:'$1.33T' },
+  ETH:{ name:'ETHEREUM', icon:'Ξ', base:3520,  spread:160,  change:'+1.78%', vol:'$18.6B', mcap:'$423B'  },
+  SOL:{ name:'SOLANA',   icon:'◎', base:148,   spread:16,   change:'-0.94%', vol:'$4.1B',  mcap:'$67B'   }
+};
+
+/* ── STATE ────────────────────────────────────────────── */
+var activeCoin = 'BTC';
+var activeTF   = '1M';
+var chart      = null;
+var liveTimer  = null;
+
+/* ── HELPERS ─────────────────────────────────────────── */
+function r(a,b){ return Math.random()*(b-a)+a; }
+function pad(n){ return String(n).padStart(2,'0'); }
+function fp(n){
+  return '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
 
-.card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+/* ── PRICE SERIES ────────────────────────────────────── */
+function makePrices(coin, n){
+  var cfg=COINS[coin], out=[], p=cfg.base+r(-cfg.spread*.4,cfg.spread*.4);
+  for(var i=0;i<n;i++){
+    p+=r(-cfg.spread*.013,cfg.spread*.015);
+    p=Math.max(cfg.base-cfg.spread*.95,p);
+    out.push(Math.round(p*100)/100);
+  }
+  return out;
 }
 
-/* ===========================
-   LEFT PANEL
-=========================== */
-.left-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+/* Timeframe config: { points, stepMs, labelFn } */
+var TF_CFG = {
+  '1M':{ points:60,  stepMs:1000,    labelFn:function(t){ return pad(t.getHours())+':'+pad(t.getMinutes())+':'+pad(t.getSeconds()); } },
+  '1H':{ points:60,  stepMs:60000,   labelFn:function(t){ return pad(t.getHours())+':'+pad(t.getMinutes()); } },
+  '4H':{ points:80,  stepMs:180000,  labelFn:function(t){ return pad(t.getHours())+':'+pad(t.getMinutes()); } },
+  '1D':{ points:96,  stepMs:900000,  labelFn:function(t){ return pad(t.getHours())+':'+pad(t.getMinutes()); } },
+  '1W':{ points:84,  stepMs:3600000, labelFn:function(t){ var d=['Sun','Mon','Tue','Wed','Thu','Fri','Sat']; return d[t.getDay()]+' '+pad(t.getHours())+'h'; } }
+};
+
+function makeLabels(n, tf){
+  var cfg=TF_CFG[tf]||TF_CFG['1H'], now=Date.now(), out=[];
+  for(var i=n-1;i>=0;i--){
+    out.push(cfg.labelFn(new Date(now-i*cfg.stepMs)));
+  }
+  return out;
 }
 
-/* Coin Info */
-.coin-info { padding: 22px 20px; }
+/* ── AI SIGNAL ────────────────────────────────────────── */
+var UP_TEXT=[
+  'Strong bullish momentum detected. RSI above 60, MACD crossover observed.',
+  'Price consolidating above key support. Volume surge signals accumulation.',
+  'Fibonacci 0.618 retracement held. Breakout pattern forming on chart.',
+  'Whale accumulation on-chain. Exchange outflows at 3-month high.',
+  'Golden cross confirmed. Institutional buy signals active across timeframes.'
+];
+var DN_TEXT=[
+  'Bearish RSI divergence detected. Distribution pattern on hourly visible.',
+  'Resistance rejected repeatedly. Short-side pressure intensifying.',
+  'Volume dropping on pumps. Classic bull-trap formation identified.',
+  'Funding rates elevated. Over-leveraged longs at liquidation risk.',
+  'Death cross forming. Macro headwinds adding sustained downward pressure.'
+];
 
-.coin-name {
-  font-family: var(--font-mono);
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--accent);
-  text-shadow: 0 0 14px rgba(0,255,204,0.5);
-  letter-spacing: 0.08em;
-  margin-bottom: 6px;
-}
-
-.coin-price {
-  font-family: var(--font-mono);
-  font-size: 26px;
-  font-weight: 700;
-  color: var(--text-bright);
-  margin-bottom: 8px;
-  letter-spacing: -0.01em;
-}
-
-.coin-meta {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 18px;
-}
-
-.change {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--accent);
-  background: var(--accent-dim);
-  border: 1px solid rgba(0,255,204,0.3);
-  padding: 3px 8px;
-  border-radius: 4px;
-}
-.change.down {
-  color: var(--danger);
-  background: var(--danger-dim);
-  border-color: rgba(255,77,106,0.3);
+function updateAI(){
+  if(!chart) return;
+  var data=chart.data.datasets[0].data;
+  var last=data[data.length-1], prev=data[Math.max(0,data.length-12)];
+  var up=(last>=prev), conf=Math.floor(r(57,94));
+  var arr=document.getElementById('vArrow');
+  var lbl=document.getElementById('vLabel');
+  arr.textContent=up?'▲':'▼';
+  arr.className='verdict-arrow '+(up?'up':'down');
+  lbl.textContent=up?'UP':'DOWN';
+  lbl.className='verdict-label '+(up?'up':'down');
+  document.getElementById('confBar').style.width=conf+'%';
+  document.getElementById('confPct').textContent=conf+'%';
+  document.getElementById('aiReason').textContent=(up?UP_TEXT:DN_TEXT)[Math.floor(Math.random()*5)];
+  lbl.style.opacity='0.05';
+  setTimeout(function(){ lbl.style.opacity='1'; },120);
 }
 
-.meta-label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-dim);
-  letter-spacing: 0.1em;
+/* ── BUILD CHART ──────────────────────────────────────── */
+function buildChart(prices, labels){
+  var canvas=document.getElementById('priceChart');
+  var ctx=canvas.getContext('2d');
+
+  if(chart){ chart.destroy(); chart=null; }
+
+  var h=canvas.parentElement.clientHeight||360;
+  var grad=ctx.createLinearGradient(0,0,0,h);
+  grad.addColorStop(0,'rgba(0,255,204,0.22)');
+  grad.addColorStop(0.5,'rgba(0,255,204,0.06)');
+  grad.addColorStop(1,'rgba(0,255,204,0.00)');
+
+  chart=new Chart(ctx,{
+    type:'line',
+    data:{
+      labels:labels,
+      datasets:[{
+        data:prices,
+        borderColor:'#00ffcc',
+        borderWidth:2,
+        pointRadius:0,
+        pointHoverRadius:5,
+        pointHoverBackgroundColor:'#00ffcc',
+        pointHoverBorderColor:'#050d14',
+        pointHoverBorderWidth:2,
+        fill:true,
+        backgroundColor:grad,
+        tension:0.4
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      animation:{duration:350},
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'rgba(7,16,26,0.97)',
+          borderColor:'rgba(0,255,204,0.25)',
+          borderWidth:1,
+          titleColor:'#4a7a96',
+          bodyColor:'#00ffcc',
+          titleFont:{family:'Space Mono',size:9},
+          bodyFont:{family:'Space Mono',size:12},
+          padding:10,
+          callbacks:{label:function(c){ return ' '+fp(c.parsed.y); }}
+        }
+      },
+      scales:{
+        x:{
+          grid:{color:'rgba(14,32,48,0.95)',drawTicks:false},
+          ticks:{color:'#2d4d62',font:{family:'Space Mono',size:9},maxTicksLimit:8,maxRotation:0},
+          border:{color:'#0e2030'}
+        },
+        y:{
+          position:'right',
+          grid:{color:'rgba(14,32,48,0.95)',drawTicks:false},
+          ticks:{color:'#2d4d62',font:{family:'Space Mono',size:9},maxTicksLimit:7,
+                 callback:function(v){ return fp(v); }},
+          border:{color:'#0e2030'}
+        }
+      }
+    }
+  });
 }
 
-.coin-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  border-top: 1px solid var(--border);
-  padding-top: 14px;
+/* ── STATS ────────────────────────────────────────────── */
+function updateStats(prices){
+  var last=prices[prices.length-1];
+  document.getElementById('coinPrice').textContent=fp(last);
+  document.getElementById('priceTag').textContent=fp(last);
+  document.getElementById('statHigh').textContent=fp(Math.max.apply(null,prices));
+  document.getElementById('statLow').textContent=fp(Math.min.apply(null,prices));
 }
 
-.stat {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+/* ── LOAD COIN ────────────────────────────────────────── */
+function loadCoin(coin){
+  activeCoin=coin;
+  var cfg=COINS[coin];
+  var tfCfg=TF_CFG[activeTF]||TF_CFG['1M'];
+  var prices=makePrices(coin,tfCfg.points);
+  var labels=makeLabels(tfCfg.points,activeTF);
+
+  document.getElementById('coinIcon').textContent=cfg.icon;
+  document.getElementById('coinName').textContent=cfg.name;
+  document.getElementById('statVol').textContent=cfg.vol;
+  document.getElementById('statMcap').textContent=cfg.mcap;
+
+  var isDown=cfg.change.charAt(0)==='-';
+  var chEl=document.getElementById('coinChange');
+  chEl.textContent=cfg.change;
+  chEl.className='change'+(isDown?' down':'');
+
+  updateStats(prices);
+  buildChart(prices,labels);
+  updateAI();
+  startLive();
 }
 
-.stat-label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-dim);
-  letter-spacing: 0.08em;
+/* ── LIVE TICK ────────────────────────────────────────── */
+/* 1M ticks every 1 s, others every 1.5 s */
+function startLive(){
+  if(liveTimer){ clearInterval(liveTimer); liveTimer=null; }
+  var interval=(activeTF==='1M')?1000:1500;
+  var tfCfg=TF_CFG[activeTF]||TF_CFG['1H'];
+  var maxPoints=tfCfg.points+20;
+
+  liveTimer=setInterval(function(){
+    if(!chart) return;
+    var cfg=COINS[activeCoin];
+    var oldData=chart.data.datasets[0].data.slice();
+    var oldLbl=chart.data.labels.slice();
+    var last=oldData[oldData.length-1];
+    var next=Math.round((last+r(-cfg.spread*.011,cfg.spread*.013))*100)/100;
+    var now=new Date();
+    oldData.push(next);
+    oldLbl.push(tfCfg.labelFn(now));
+    if(oldData.length>maxPoints){ oldData.shift(); oldLbl.shift(); }
+    chart.data.datasets[0].data=oldData;
+    chart.data.labels=oldLbl;
+    chart.update('none');
+    updateStats(oldData);
+  },interval);
 }
 
-.stat-value {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-mid);
+/* ── CLOCK ────────────────────────────────────────────── */
+function tickClock(){
+  var d=new Date();
+  document.getElementById('clock').textContent=
+    pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
 }
+tickClock(); setInterval(tickClock,1000);
 
-/* AI Panel */
-.ai-panel { padding: 20px 20px; }
+/* ── COIN BUTTONS ─────────────────────────────────────── */
+document.querySelectorAll('.coin-btn').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.coin-btn').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    loadCoin(btn.getAttribute('data-coin'));
+  });
+});
 
-.ai-panel::before {
-  background: linear-gradient(90deg, transparent, var(--accent2), transparent);
-}
+/* ── TIMEFRAME BUTTONS ────────────────────────────────── */
+document.querySelectorAll('.tf-btn').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.tf-btn').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    activeTF=btn.getAttribute('data-tf');
+    loadCoin(activeCoin);
+  });
+});
 
-.ai-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-mid);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  margin-bottom: 16px;
-}
+/* ── REFRESH ──────────────────────────────────────────── */
+document.getElementById('refreshBtn').addEventListener('click',function(){
+  updateAI();
+});
 
-.ai-icon {
-  font-size: 16px;
-  color: var(--accent2);
-  filter: drop-shadow(0 0 6px var(--accent2));
-  animation: float 3s ease-in-out infinite;
-}
-@keyframes float {
-  0%,100% { transform: translateY(0); }
-  50%      { transform: translateY(-3px); }
-}
+/* ── INIT ─────────────────────────────────────────────── */
+loadCoin('BTC');
 
-.ai-verdict {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.verdict-arrow {
-  font-size: 28px;
-  line-height: 1;
-}
-.verdict-arrow.up  { color: var(--accent); filter: drop-shadow(0 0 8px var(--accent)); animation: bounce-up 1.6s ease-in-out infinite; }
-.verdict-arrow.down{ color: var(--danger); filter: drop-shadow(0 0 8px var(--danger)); animation: bounce-dn 1.6s ease-in-out infinite; }
-
-@keyframes bounce-up { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
-@keyframes bounce-dn { 0%,100%{transform:translateY(0)} 50%{transform:translateY(5px)} }
-
-.verdict-label {
-  font-family: var(--font-mono);
-  font-size: 32px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  transition: opacity 0.4s ease;
-}
-.verdict-label.up   { color: var(--accent); text-shadow: 0 0 20px rgba(0,255,204,0.6); }
-.verdict-label.down { color: var(--danger); text-shadow: 0 0 20px rgba(255,77,106,0.6); }
-
-.ai-confidence {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-
-.conf-label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-dim);
-  letter-spacing: 0.08em;
-  white-space: nowrap;
-}
-
-.conf-bar-wrap {
-  flex: 1;
-  height: 5px;
-  background: var(--border);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.conf-bar {
-  height: 100%;
-  background: linear-gradient(90deg, var(--accent), var(--accent2));
-  border-radius: 3px;
-  transition: width 0.7s ease;
-  box-shadow: 0 0 8px rgba(0,255,204,0.4);
-}
-
-.conf-pct {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--accent);
-  min-width: 34px;
-  text-align: right;
-}
-
-.ai-reason {
-  font-family: var(--font-ui);
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 1.6;
-  color: var(--text-mid);
-  border-left: 2px solid rgba(0,255,204,0.25);
-  padding-left: 12px;
-  margin-bottom: 16px;
-}
-
-.refresh-btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  background: transparent;
-  border: 1px solid rgba(0,255,204,0.5);
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  padding: 9px 16px;
-  border-radius: 6px;
-  transition: background 0.2s, box-shadow 0.2s;
-  text-transform: uppercase;
-}
-.refresh-btn:hover {
-  background: var(--accent-dim);
-  box-shadow: 0 0 14px rgba(0,255,204,0.2);
-}
-.refresh-btn:active { transform: scale(0.98); }
-
-.btn-icon {
-  font-size: 16px;
-  display: inline-block;
-  transition: transform 0.5s ease;
-}
-.spinning { transform: rotate(360deg) !important; }
-
-/* ===========================
-   CHART SECTION
-=========================== */
-.chart-section {
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
-}
-
-.chart-topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
-  flex-shrink: 0;
-}
-
-.timeframes { display: flex; gap: 6px; }
-
-.tf-btn {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-dim);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  padding: 5px 12px;
-  border-radius: 4px;
-  letter-spacing: 0.06em;
-  transition: all 0.18s;
-}
-.tf-btn:hover { border-color: var(--accent); color: var(--accent); }
-.tf-btn.active {
-  background: var(--accent-dim);
-  border-color: rgba(0,255,204,0.6);
-  color: var(--accent);
-  box-shadow: 0 0 10px rgba(0,255,204,0.15);
-}
-
-.current-price-tag {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 700;
-  color: #050d14;
-  background: var(--accent);
-  padding: 5px 14px;
-  border-radius: 5px;
-  box-shadow: 0 0 18px rgba(0,255,204,0.35);
-  letter-spacing: 0.04em;
-  transition: background 0.3s;
-}
-
-/* CHART WRAP — explicit height is critical */
-.chart-wrap {
-  position: relative;
-  flex: 1;
-  min-height: 340px;
-  height: 340px;
-}
-
-.chart-wrap canvas {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100% !important;
-  height: 100% !important;
-}
-
-/* Coin Selector */
-.coin-selector {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 18px;
-  flex-shrink: 0;
-}
-
-.coin-btn {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-mid);
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 700;
-  padding: 8px 28px;
-  border-radius: 6px;
-  letter-spacing: 0.1em;
-  transition: all 0.2s;
-}
-.coin-btn:hover { border-color: var(--accent); color: var(--accent); }
-.coin-btn.active {
-  background: var(--accent-dim);
-  border-color: rgba(0,255,204,0.6);
-  color: var(--accent);
-  box-shadow: 0 0 14px rgba(0,255,204,0.15);
-}
-
-/* ===========================
-   RESPONSIVE
-=========================== */
-@media (max-width: 900px) {
-  .main { grid-template-columns: 1fr; }
-  .left-panel { flex-direction: row; flex-wrap: wrap; }
-  .coin-info, .ai-panel { flex: 1 1 260px; }
-  .chart-wrap { min-height: 280px; height: 280px; }
-}
-
-@media (max-width: 560px) {
-  .app { padding: 0 12px 16px; }
-  .coin-price { font-size: 22px; }
-  .chart-wrap { min-height: 240px; height: 240px; }
-}
+})();
+</script>
+</body>
+</html>
