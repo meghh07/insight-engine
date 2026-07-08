@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Insight Engine</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <main class="app">
+    <header>
+      <h1>Insight Engine</h1>
+      <p class="subtitle">Production baseline dashboard</p>
+    </header>
+
+    <section class="card" id="authCard">
+      <h2>Authentication</h2>
+      <form id="loginForm">
+        <input id="username" name="username" placeholder="Username" required />
+        <input id="password" name="password" type="password" placeholder="Password" required />
+        <button type="submit">Log in</button>
+      </form>
+      <p class="hint">Default local credentials are configured via environment variables.</p>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Market quote</h2>
+        <div class="row">
+          <select id="symbol">
+            <option>BTC</option>
+            <option>ETH</option>
+            <option>SOL</option>
+          </select>
+          <button id="loadQuote">Refresh</button>
+        </div>
+        <pre id="quote">No data</pre>
+      </article>
+
+      <article class="card">
+        <h2>Signal</h2>
+        <button id="loadSignal">Compute signal</button>
+        <pre id="signal">No data</pre>
+      </article>
+
+      <article class="card">
+        <h2>Alerts</h2>
+        <form id="alertForm" class="row">
+          <input id="alertPrice" type="number" step="0.01" placeholder="Target price" required />
+          <button type="submit">Create alert</button>
+        </form>
+        <ul id="alerts"></ul>
+      </article>
+
+      <article class="card">
+        <h2>Settings</h2>
+        <form id="settingsForm">
+          <label>Theme
+            <select id="theme">
+              <option value="dark">dark</option>
+              <option value="light">light</option>
+            </select>
+          </label>
+          <label><input id="notify" type="checkbox" checked /> Notifications enabled</label>
+          <button type="submit">Save settings</button>
+        </form>
+        <pre id="settingsResult">No data</pre>
+      </article>
+    </section>
+
+    <section class="card">
+      <h2>System</h2>
+      <pre id="status">Ready</pre>
+    </section>
+  </main>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

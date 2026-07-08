@@ -1,0 +1,17 @@
+{
+  "name": "insight-engine",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node backend/src/server.js",
+    "dev": "NODE_ENV=development node backend/src/server.js",
+    "build": "node scripts/build.js",
+    "lint": "node scripts/lint.js",
+    "test": "node --test",
+    "ci": "npm run lint && npm run test && npm run build"
+  }
+}
