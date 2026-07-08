@@ -7,7 +7,7 @@ Production-ready baseline for a market intelligence platform with secure API bou
 - `backend/src/`: API server (auth, market, signals, alerts, settings, analytics)
 - `shared/`: request/response contracts
 - `tests/`: contract, service, and integration tests
-- `.github/workflows/`: CI + CodeQL
+- `.github/workflows/`: CI + CodeQL + Pages deployment
 
 ## Quick start
 ```bash
@@ -16,6 +16,11 @@ npm run start
 ```
 
 Open `http://localhost:3000`.
+
+## GitHub Pages deployment
+- The static site is built from `frontend/` into `dist/` via `npm run build`.
+- Deployment runs through `.github/workflows/pages.yml` on pushes to `main` (or manually via workflow dispatch).
+- In repository Settings → Pages, set the source to **GitHub Actions**.
 
 ## Security baseline
 - No hardcoded secrets in source files
